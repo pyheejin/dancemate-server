@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -20,6 +21,8 @@ class PostUserJoinModel(BaseModel):
     nickname: str
     email: str
     password: str
+    phone: Optional[str]
+    introduction: Optional[str]
 
 
 @router.post('/join', tags=['user'], summary='회원가입')
@@ -29,52 +32,52 @@ def post_user_join(request: PostUserJoinModel,
     try:
         response = user_controller.post_user_join(session=session,
                                                   request=request)
-    except TypeError as e:
-        print(e)
+    except HTTPException as e:
+        print(f'error: {e.detail}')
         session.rollback()
         response = None
-        response = error_response(response, e.args[0], result_msg + ' 실패')
-
+        response = error_response(response, e.detail, e.status_code, result_msg)
     except Exception as e:
         print(e)
         session.rollback()
+
         response = DefaultModel()
-        response.result_msg = result_msg + ' 실패'
+        response.result_msg = f'{result_msg} 실패'
         response.result_code = 210
     else:
         session.commit()
         if response is None:
             response = DefaultModel()
         if response.result_msg is not None:
-            response.result_msg = result_msg + ' 성공'
+            response.result_msg = f'{result_msg} 성공'
     finally:
         session.close()
     return response
 
 
-@router.get('', tags=['user'], summary='유저 목록')
+@router.get('', tags=['user'], summary='유저 목록', dependencies=[Depends(get_current_user)])
 def get_user(session: Session = Depends(db.session)):
     result_msg = '유저 목록'
     try:
         response = user_controller.get_user(session=session)
-    except TypeError as e:
-        print(e)
+    except HTTPException as e:
+        print(f'error: {e.detail}')
         session.rollback()
         response = None
-        response = error_response(response, e.args[0], result_msg + ' 실패')
-
+        response = error_response(response, e.detail, e.status_code, result_msg)
     except Exception as e:
         print(e)
         session.rollback()
+
         response = DefaultModel()
-        response.result_msg = result_msg + ' 실패'
+        response.result_msg = f'{result_msg} 실패'
         response.result_code = 210
     else:
         session.commit()
         if response is None:
             response = DefaultModel()
         if response.result_msg is not None:
-            response.result_msg = result_msg + ' 성공'
+            response.result_msg = f'{result_msg} 성공'
     finally:
         session.close()
     return response
@@ -90,22 +93,23 @@ def get_user_detail(user_id: int,
                                                    # g=g,
                                                    session=session)
     except HTTPException as e:
-        print(e)
+        print(f'error: {e.detail}')
         session.rollback()
         response = None
-        response = error_response(response, e.args[0], result_msg + ' 실패')
+        response = error_response(response, e.detail, e.status_code, result_msg)
     except Exception as e:
         print(e)
         session.rollback()
+
         response = DefaultModel()
-        response.result_msg = result_msg + ' 실패'
+        response.result_msg = f'{result_msg} 실패'
         response.result_code = 210
     else:
         session.commit()
         if response is None:
             response = DefaultModel()
         if response.result_msg is not None:
-            response.result_msg = result_msg + ' 성공'
+            response.result_msg = f'{result_msg} 성공'
     finally:
         session.close()
     return response
@@ -119,23 +123,23 @@ def post_user_login(request: OAuth2PasswordRequestForm = Depends(),
         response = user_controller.post_user_login(session=session,
                                                    request=request)
     except HTTPException as e:
-        print(e)
+        print(f'error: {e.detail}')
         session.rollback()
-        response = DefaultLoginModel()
-        response.result_msg = result_msg + ' 실패'
-        response.result_code = 210
+        response = None
+        response = error_response(response, e.detail, e.status_code, result_msg)
     except Exception as e:
         print(e)
         session.rollback()
-        response = DefaultLoginModel()
-        response.result_msg = result_msg + ' 실패'
+
+        response = DefaultModel()
+        response.result_msg = f'{result_msg} 실패'
         response.result_code = 210
     else:
         session.commit()
         if response is None:
-            response = DefaultLoginModel()
+            response = DefaultModel()
         if response.result_msg is not None:
-            response.result_msg = result_msg + ' 성공'
+            response.result_msg = f'{result_msg} 성공'
     finally:
         session.close()
     return response

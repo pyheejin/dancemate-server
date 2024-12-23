@@ -35,6 +35,9 @@ class SQLAlchemy:
         def startup():
             self._engine.connect()
 
+            # 테이블 자동 생성
+            # Base.metadata.create_all(self._engine)
+
         @app.on_event('shutdown')
         def shutdown():
             self._session.close_all()

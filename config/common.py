@@ -11,21 +11,22 @@ from database.base_model import DefaultModel
 
 def error_response(response: DefaultModel,
                    error_msg: str,
-                   error_code: int = 205,
-                   default_error_msg: str = '실패'):
+                   error_code: int,
+                   result_msg: str):
     if response is None:
         response = DefaultModel()
 
     if error_msg is None:
         return
+    print(ERROR_DIC[error_msg])
 
     response.result_data = {}
     if error_msg in ERROR_DIC.keys():
         response.result_code = ERROR_DIC[error_msg][0]
-        response.result_msg = f'[{default_error_msg}] {ERROR_DIC[error_msg][1]}'
+        response.result_msg = f'[{result_msg} 실패] {ERROR_DIC[error_msg][1]}'
     else:
         response.result_code = error_code
-        response.result_msg = f'[{default_error_msg}] {error_msg}'
+        response.result_msg = f'[{result_msg} 실패] {error_msg}'
     return response
 
 
