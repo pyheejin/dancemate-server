@@ -40,6 +40,7 @@ def post_user_join(session, request):
                             detail=ERROR_EMAIL_EXISTS)
 
     user = User()
+    user.type = request.type
     user.email = request.email
     user.password = jwt.get_password_hash(request.password)
     user.nickname = request.nickname

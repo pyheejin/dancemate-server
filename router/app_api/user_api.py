@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 
+from config import constant
 from config.common import error_response, get_current_user
 from database.database import db
 from database.models import User
@@ -17,6 +18,7 @@ router = APIRouter(
 
 
 class PostUserJoinModel(BaseModel):
+    type: int = constant.USER_TYPE_MATE
     name: str
     nickname: str
     email: str
