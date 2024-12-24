@@ -17,6 +17,10 @@ app_tags_metadata = [
         'name': 'user',
         'description': '고객정보'
     },
+    {
+        'name': 'home',
+        'description': '홈'
+    },
 ]
 
 admin_tags_metadata = [
