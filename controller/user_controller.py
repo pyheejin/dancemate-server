@@ -74,6 +74,7 @@ def post_user_login(session, request):
 
             user.access_token = access_token
             user.refresh_token = refresh_token
+            user.last_login_date = datetime.now()
 
             response.access_token = access_token
             response.refresh_token = refresh_token
