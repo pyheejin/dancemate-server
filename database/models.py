@@ -28,13 +28,15 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
+    dancer_course = relationship('Course', back_populates='dancer')
+
 
 class Course(Base):
     __tablename__ = 'course'
 
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
-    user_id = Column(Integer, comment='')
+    user_id = Column(Integer, ForeignKey('user.id'), comment='')
     title = Column(String(255), comment='타이틀')
     description = Column(Text, comment='내용')
     image_url = Column(String(255), comment='이미지 url')
@@ -43,6 +45,7 @@ class Course(Base):
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
+    dancer = relationship('User', back_populates='dancer_course')
     course_detail = relationship('CourseDetail', back_populates='course')
 
 
@@ -158,6 +161,6 @@ class UserCourse(Base):
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
     user_id = Column(Integer, comment='')
-    course_id = Column(Integer, comment='')
+    course_detail_id = Column(Integer, comment='')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)

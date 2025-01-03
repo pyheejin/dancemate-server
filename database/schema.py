@@ -45,7 +45,7 @@ class CourseListSchema(Schema):
     count = fields.Int()
     last_course_date = fields.DateTime('%m/%d')
 
-    # dancer = fields.Nested(UserListSchema(), many=False)
+    dancer = fields.Nested(UserListSchema(), many=False)
     course_detail = fields.Nested(CourseDetailSchema(), many=True)
 
 

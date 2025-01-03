@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy import and_
+from sqlalchemy.orm import contains_eager
 from datetime import datetime, timedelta
 
 from database.models import *
@@ -25,20 +26,23 @@ def get_home(session):
                                         and_(CourseDetail.course_id == Course.id,
                                              CourseDetail.status == constant.STATUS_ACTIVE)
                             ).outerjoin(UserCourse,
-                                        and_(UserCourse.course_id == Course.id,
+                                        and_(UserCourse.course_detail_id == CourseDetail.id,
                                              UserCourse.status == constant.STATUS_ACTIVE)
                             ).filter(Course.status == constant.STATUS_ACTIVE,
                                      CourseDetail.course_date.between(today, tomorrow)
+                            ).options(contains_eager(Course.course_detail),
                             ).all()
     reserve_courses = session.query(Course
                             ).outerjoin(CourseDetail,
                                         and_(CourseDetail.course_id == Course.id,
                                              CourseDetail.status == constant.STATUS_ACTIVE)
                             ).outerjoin(UserCourse,
-                                        and_(UserCourse.course_id == Course.id,
+                                        and_(UserCourse.course_detail_id == CourseDetail.id,
                                              UserCourse.status == constant.STATUS_ACTIVE)
                             ).filter(Course.status == constant.STATUS_ACTIVE,
-                                     UserCourse.user_id == 6).all()
+                                     UserCourse.user_id == 1
+                            ).options(contains_eager(Course.course_detail),
+                            ).all()
 
     response.result_data = {
         'recommend_users': user_list_schema.dump(recommend_users),
