@@ -50,3 +50,11 @@ class CourseListSchema(Schema):
 
 
 course_list_schema = CourseListSchema(many=True)
+
+
+class SearchKeywordSchema(Schema):
+    id = fields.Int()
+    keyword = fields.String()
+
+
+search_keyword_schema = SearchKeywordSchema(many=True)

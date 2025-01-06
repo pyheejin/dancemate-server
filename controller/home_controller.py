@@ -50,5 +50,3 @@ def get_home(session):
         'reserve_courses': course_list_schema.dump(reserve_courses),
     }
     return response
-
-

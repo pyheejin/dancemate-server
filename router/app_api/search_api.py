@@ -9,19 +9,19 @@ from config.common import error_response, get_current_user
 from database.database import db
 from database.models import User
 from database.base_model import DefaultModel, DefaultLoginModel
-from controller import home_controller
+from controller import search_controller
 
 
 router = APIRouter(
-    prefix='/home'
+    prefix='/search'
 )
 
 
-@router.get('', tags=['home'], summary='홈', dependencies=[Depends(get_current_user)])
-def get_home(session: Session = Depends(db.session)):
-    result_msg = '홈'
+@router.get('/pre', tags=['search'], summary='검색', dependencies=[Depends(get_current_user)])
+def get_search_pre(session: Session = Depends(db.session)):
+    result_msg = '검색'
     try:
-        response = home_controller.get_home(session=session)
+        response = search_controller.get_search_pre(session=session)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()

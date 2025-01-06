@@ -29,6 +29,7 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     dancer_course = relationship('Course', back_populates='dancer')
+    search_keyword = relationship('SearchKeyword', back_populates='user')
 
 
 class Course(Base):
@@ -164,3 +165,17 @@ class UserCourse(Base):
     course_detail_id = Column(Integer, comment='')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+
+class SearchKeyword(Base):
+    __tablename__ = 'search_keyword'
+
+    id = Column(Integer, primary_key=True, index=True)
+    status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
+    type = Column(Integer, default=1, comment='1:유저가 검색한 키워드, 99:관리자가 등록하는 추천 키워드')
+    user_id = Column(Integer, ForeignKey('user.id'), comment='')
+    keyword = Column(String(255), comment='검색어')
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    user = relationship('User', back_populates='search_keyword')
