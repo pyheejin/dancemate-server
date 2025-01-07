@@ -1,21 +1,16 @@
-from fastapi import HTTPException
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import contains_eager
-from datetime import datetime, timedelta
 
 from database.models import *
 from database.schema import *
-from database.base_model import DefaultModel, DefaultLoginModel
-from config.jwt_handler import JWT
-from config.constant import *
+from database.base_model import DefaultModel
 
 
 def get_search_pre(session):
     response = DefaultModel()
 
-    format = '%Y-%m-%d %H:%M:%S'
-    today = datetime.strptime(datetime.now().date().strftime(format), format)
-    tomorrow = datetime.strptime((datetime.now().date()+timedelta(days=1)).strftime(format), format)
+    date_format = '%Y-%m-%d %H:%M:%S'
+    today = datetime.strptime(datetime.now().date().strftime(date_format), date_format)
 
     keyword_query = session.query(SearchKeyword)
 
@@ -33,7 +28,7 @@ def get_search_pre(session):
                                         and_(RecommendUser.user_id == Course.user_id,
                                              RecommendUser.status == constant.STATUS_ACTIVE)
                             ).filter(Course.status == constant.STATUS_ACTIVE,
-                                     CourseDetail.course_date.between(today, tomorrow)
+                                     CourseDetail.course_date >= today,
                             ).options(contains_eager(Course.course_detail),
                             ).all()
 
@@ -41,5 +36,33 @@ def get_search_pre(session):
         'latest_keyword': search_keyword_schema.dump(latest_keyword),
         'recommend_keyword': search_keyword_schema.dump(recommend_keyword),
         'recommend_courses': course_list_schema.dump(recommend_courses),
+    }
+    return response
+
+
+def get_search(session, keyword):
+    response = DefaultModel()
+
+    date_format = '%Y-%m-%d %H:%M:%S'
+    today = datetime.strptime(datetime.now().date().strftime(date_format), date_format)
+
+    courses = session.query(CourseDetail
+                    ).outerjoin(Course,
+                                and_(CourseDetail.course_id == Course.id,
+                                     Course.status == constant.STATUS_ACTIVE)
+                    ).outerjoin(User,
+                                and_(User.id == Course.user_id,
+                                     User.status == constant.STATUS_ACTIVE)
+                    ).filter(CourseDetail.status == constant.STATUS_ACTIVE,
+                             CourseDetail.course_date >= today,
+                             or_(Course.title.like(f'%{keyword}%'),
+                                 Course.description.like(f'%{keyword}%')),
+                    ).options(contains_eager(CourseDetail.course),
+                              contains_eager(CourseDetail.course).contains_eager(Course.dancer),
+                    ).all()
+
+    response.result_data = {
+        'result_count': len(courses),
+        'courses': search_course_detail_schema.dump(courses),
     }
     return response

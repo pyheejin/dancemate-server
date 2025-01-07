@@ -58,3 +58,28 @@ class SearchKeywordSchema(Schema):
 
 
 search_keyword_schema = SearchKeywordSchema(many=True)
+
+
+class SearchCourseListSchema(Schema):
+    id = fields.Int()
+    title = fields.String()
+    image_url = fields.String()
+    user_id = fields.Int()
+    count = fields.Int()
+    last_course_date = fields.DateTime('%m/%d')
+
+    dancer = fields.Nested(UserListSchema(), many=False)
+
+
+search_course_list_schema = SearchCourseListSchema(many=True)
+
+
+class SearchCourseDetailSchema(Schema):
+    id = fields.Int()
+    title = fields.String()
+    course_date = fields.DateTime('%m/%d')
+
+    course = fields.Nested(SearchCourseListSchema(), many=False)
+
+
+search_course_detail_schema = SearchCourseDetailSchema(many=True)

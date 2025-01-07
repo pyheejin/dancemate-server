@@ -1,13 +1,10 @@
-from fastapi import HTTPException
 from sqlalchemy import and_
 from sqlalchemy.orm import contains_eager
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from database.models import *
 from database.schema import *
-from database.base_model import DefaultModel, DefaultLoginModel
-from config.jwt_handler import JWT
-from config.constant import *
+from database.base_model import DefaultModel
 
 
 def get_home(session):

@@ -7,8 +7,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from config import constant
 from config.common import error_response, get_current_user
 from database.database import db
-from database.models import User
-from database.base_model import DefaultModel, DefaultLoginModel
+from database.base_model import DefaultModel
 from controller import user_controller
 
 
