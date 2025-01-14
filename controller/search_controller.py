@@ -30,7 +30,7 @@ def get_search_pre(session):
                             ).filter(Course.status == constant.STATUS_ACTIVE,
                                      CourseDetail.course_date >= today,
                             ).options(contains_eager(Course.course_detail),
-                            ).all()
+                            ).limit(3).all()
 
     response.result_data = {
         'latest_keyword': search_keyword_schema.dump(latest_keyword),
