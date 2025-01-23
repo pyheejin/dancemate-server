@@ -7,7 +7,7 @@ from database.schema import *
 from database.base_model import DefaultModel
 
 
-def get_home(session):
+def get_home(session, g):
     response = DefaultModel()
 
     format = '%Y-%m-%d %H:%M:%S'
@@ -37,13 +37,29 @@ def get_home(session):
                                         and_(UserCourse.course_detail_id == CourseDetail.id,
                                              UserCourse.status == constant.STATUS_ACTIVE)
                             ).filter(Course.status == constant.STATUS_ACTIVE,
-                                     UserCourse.user_id == 1
+                                     UserCourse.user_id == g.id,
                             ).options(contains_eager(Course.course_detail),
+                                      contains_eager(Course.course_detail
+                                    ).contains_eager(CourseDetail.user_course_detail),
                             ).all()
+
+    reserve_courses = session.query(CourseDetail
+                            ).outerjoin(Course,
+                                        and_(CourseDetail.course_id == Course.id,
+                                             Course.status == constant.STATUS_ACTIVE)
+                            ).outerjoin(UserCourse,
+                                        and_(UserCourse.course_detail_id == CourseDetail.id,
+                                             UserCourse.status == constant.STATUS_ACTIVE)
+                            ).filter(Course.status == constant.STATUS_ACTIVE,
+                                     UserCourse.user_id == g.id,
+                            ).options(contains_eager(CourseDetail.course),
+                                      contains_eager(CourseDetail.user_course_detail),
+                            ).all()
+    print(g.id, len(reserve_courses))
 
     response.result_data = {
         'recommend_users': user_list_schema.dump(recommend_users),
         'today_courses': course_list_schema.dump(today_courses),
-        'reserve_courses': course_list_schema.dump(reserve_courses),
+        'reserve_courses': course_detail_schema.dump(reserve_courses),
     }
     return response

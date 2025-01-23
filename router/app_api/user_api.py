@@ -7,6 +7,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from config import constant
 from config.common import error_response, get_current_user
 from database.database import db
+from database.models import User
 from database.base_model import DefaultModel
 from controller import user_controller
 
@@ -57,10 +58,12 @@ def post_user_join(request: PostUserJoinModel,
 
 
 @router.get('', tags=['user'], summary='유저 목록', dependencies=[Depends(get_current_user)])
-def get_user(session: Session = Depends(db.session)):
+def get_user(session: Session = Depends(db.session),
+             g: User = Depends(get_current_user)):
     result_msg = '유저 목록'
     try:
-        response = user_controller.get_user(session=session)
+        response = user_controller.get_user(session=session,
+                                            g=g)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()

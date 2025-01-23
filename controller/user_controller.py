@@ -1,3 +1,5 @@
+from sqlalchemy import and_
+from sqlalchemy.orm import contains_eager
 from fastapi import HTTPException
 
 from database.models import *
@@ -7,13 +9,25 @@ from config.jwt_handler import JWT
 from config.constant import *
 
 
-def get_user(session):
+def get_user(session, g):
     response = DefaultModel()
 
-    users = session.query(User).filter(User.status == 1).all()
+    user = session.query(User).outerjoin(UserCourse,
+                                         and_(UserCourse.user_id == User.id,
+                                              UserCourse.status >= constant.STATUS_INACTIVE)
+                            ).outerjoin(CourseDetail,
+                                        and_(CourseDetail.id == UserCourse.course_detail_id,
+                                             CourseDetail.status == constant.STATUS_ACTIVE)
+                            ).outerjoin(Course,
+                                        and_(CourseDetail.course_id == Course.id,
+                                             Course.status == constant.STATUS_ACTIVE)
+                            ).options(contains_eager(User.reserve_course),
+                                      contains_eager(User.reserve_course).contains_eager(UserCourse.course_detail),
+                                      contains_eager(User.reserve_course).contains_eager(UserCourse.course_detail),
+                            ).filter(User.id == g.id).all()
 
     response.result_data = {
-        'users': user_list_schema.dump(users),
+        'user': user_detail_schema.dump(user[0]),
     }
     return response
 
@@ -51,7 +65,7 @@ def post_user_join(session, request):
     session.add(user)
     session.flush()
 
-    user_payload = user_detail_schema.dump(user)
+    user_payload = user_payload_schema.dump(user)
     user.access_token = jwt.create_access_token(user_payload)
     user.refresh_token = jwt.create_refresh_token(user_payload)
 

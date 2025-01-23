@@ -8,6 +8,16 @@ class TokenPayloadSchema(Schema):
 token_payload_schema = TokenPayloadSchema(many=False)
 
 
+class UserPayloadSchema(Schema):
+    id = fields.Int()
+    email = fields.String()
+    nickname = fields.String()
+    image_url = fields.String()
+
+
+user_payload_schema = UserPayloadSchema(many=False)
+
+
 class UserListSchema(Schema):
     id = fields.Int()
     email = fields.String()
@@ -18,20 +28,20 @@ class UserListSchema(Schema):
 user_list_schema = UserListSchema(many=True)
 
 
-class UserDetailSchema(Schema):
+class SimpleCourseListSchema(Schema):
     id = fields.Int()
-    email = fields.String()
-    nickname = fields.String()
+    title = fields.String()
     image_url = fields.String()
 
-
-user_detail_schema = UserDetailSchema(many=False)
+    dancer = fields.Nested(UserListSchema(), many=False)
 
 
 class CourseDetailSchema(Schema):
     id = fields.Int()
     title = fields.String()
     course_date = fields.DateTime('%m/%d')
+
+    course = fields.Nested(SimpleCourseListSchema(), many=False)
 
 
 course_detail_schema = CourseDetailSchema(many=True)
@@ -83,3 +93,24 @@ class SearchCourseDetailSchema(Schema):
 
 
 search_course_detail_schema = SearchCourseDetailSchema(many=True)
+
+
+class UserCourseSchema(Schema):
+    id = fields.Int()
+    status = fields.Int()
+    course_detail_id = fields.Int()
+
+    course_detail = fields.Nested(CourseDetailSchema(), many=False)
+
+
+class UserDetailSchema(Schema):
+    id = fields.Int()
+    email = fields.String()
+    nickname = fields.String()
+    introduction = fields.String()
+    image_url = fields.String()
+
+    reserve_course = fields.Nested(UserCourseSchema(), many=True)
+
+
+user_detail_schema = UserDetailSchema(many=False)

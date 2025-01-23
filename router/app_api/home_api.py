@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from config.common import error_response, get_current_user
 from database.database import db
+from database.models import User
 from database.base_model import DefaultModel
 from controller import home_controller
 
@@ -13,10 +14,12 @@ router = APIRouter(
 
 
 @router.get('', tags=['home'], summary='홈', dependencies=[Depends(get_current_user)])
-def get_home(session: Session = Depends(db.session)):
+def get_home(session: Session = Depends(db.session),
+             g: User = Depends(get_current_user)):
     result_msg = '홈'
     try:
-        response = home_controller.get_home(session=session)
+        response = home_controller.get_home(session=session,
+                                            g=g)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()

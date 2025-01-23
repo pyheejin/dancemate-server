@@ -30,6 +30,7 @@ class User(Base):
 
     dancer_course = relationship('Course', back_populates='dancer')
     search_keyword = relationship('SearchKeyword', back_populates='user')
+    reserve_course = relationship('UserCourse', back_populates='reserve')
 
 
 class Course(Base):
@@ -64,6 +65,7 @@ class CourseDetail(Base):
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     course = relationship('Course', back_populates='course_detail')
+    user_course_detail = relationship('UserCourse', back_populates='course_detail')
 
 
 class CourseImage(Base):
@@ -161,10 +163,13 @@ class UserCourse(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
-    user_id = Column(Integer, comment='')
-    course_detail_id = Column(Integer, comment='')
+    user_id = Column(Integer, ForeignKey('user.id'), comment='')
+    course_detail_id = Column(Integer, ForeignKey('course_detail.id'), comment='')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    reserve = relationship('User', back_populates='reserve_course')
+    course_detail = relationship('CourseDetail', back_populates='user_course_detail')
 
 
 class SearchKeyword(Base):
