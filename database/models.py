@@ -1,6 +1,6 @@
 import hashlib
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, JSON, BigInteger
@@ -31,6 +31,8 @@ class User(Base):
     dancer_course = relationship('Course', back_populates='dancer')
     search_keyword = relationship('SearchKeyword', back_populates='user')
     reserve_course = relationship('UserCourse', back_populates='reserve')
+    mate_ticket = relationship('UserTicket', back_populates='mate')
+    dancer_ticket = relationship('Ticket', back_populates='dancer')
 
 
 class Course(Base):
@@ -66,6 +68,7 @@ class CourseDetail(Base):
 
     course = relationship('Course', back_populates='course_detail')
     user_course_detail = relationship('UserCourse', back_populates='course_detail')
+    user_ticket_course_detail = relationship('UserTicketCourseDetail', back_populates='course_detail')
 
 
 class CourseImage(Base):
@@ -85,12 +88,15 @@ class Ticket(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
-    user_id = Column(Integer, comment='')
+    user_id = Column(Integer, ForeignKey('user.id'), comment='')
     count = Column(Integer, comment='회차')
     cost = Column(Integer, comment='정가')
     price = Column(Integer, comment='판매가')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    dancer = relationship('User', back_populates='dancer_ticket')
+    mate_ticket = relationship('UserTicket', back_populates='ticket')
 
 
 class UserTicket(Base):
@@ -98,11 +104,30 @@ class UserTicket(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
-    user_id = Column(Integer, comment='')
-    ticket_id = Column(Integer, comment='')
-    course_id = Column(Integer, comment='')
+    user_id = Column(Integer, ForeignKey('user.id'), comment='')
+    ticket_id = Column(Integer, ForeignKey('ticket.id'), comment='')
+    count = Column(Integer, comment='사용 횟수')
+    remain_count = Column(Integer, comment='남은 횟수')
+    expired_date = Column(DateTime, default=datetime.now() + timedelta(days=30))
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    mate = relationship('User', back_populates='mate_ticket')
+    ticket = relationship('Ticket', back_populates='mate_ticket')
+
+
+class UserTicketCourseDetail(Base):
+    __tablename__ = 'user_ticket_course_detail'
+
+    id = Column(Integer, primary_key=True, index=True)
+    status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
+    user_id = Column(Integer, comment='')
+    user_ticket_id = Column(Integer, comment='')
+    course_detail_id = Column(Integer, ForeignKey('course_detail.id'), comment='')
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    course_detail = relationship('CourseDetail', back_populates='user_ticket_course_detail')
 
 
 class Payment(Base):

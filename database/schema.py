@@ -103,6 +103,29 @@ class UserCourseSchema(Schema):
     course_detail = fields.Nested(CourseDetailSchema(), many=False)
 
 
+class TicketSchema(Schema):
+    id = fields.Int()
+    status = fields.Int()
+    user_id = fields.Int()
+    count = fields.Int()
+    cost = fields.Int()
+    price = fields.Int()
+
+    dancer = fields.Nested(UserListSchema(), many=False)
+
+
+class UserTicketSchema(Schema):
+    id = fields.Int()
+    status = fields.Int()
+    user_id = fields.Int()
+    ticket_id = fields.Int()
+    count = fields.Int()
+    remain_count = fields.Int()
+    expired_date = fields.DateTime('%Y.%m.%d까지')
+
+    ticket = fields.Nested(TicketSchema(), many=False)
+
+
 class UserDetailSchema(Schema):
     id = fields.Int()
     email = fields.String()
@@ -111,6 +134,7 @@ class UserDetailSchema(Schema):
     image_url = fields.String()
 
     reserve_course = fields.Nested(UserCourseSchema(), many=True)
+    mate_ticket = fields.Nested(UserTicketSchema(), many=True)
 
 
 user_detail_schema = UserDetailSchema(many=False)

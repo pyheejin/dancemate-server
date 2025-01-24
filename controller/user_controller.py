@@ -21,7 +21,11 @@ def get_user(session, g):
                             ).outerjoin(Course,
                                         and_(CourseDetail.course_id == Course.id,
                                              Course.status == constant.STATUS_ACTIVE)
-                            ).options(contains_eager(User.reserve_course),
+                            ).outerjoin(UserTicket,
+                                        and_(UserTicket.user_id == User.id,
+                                             UserTicket.status >= constant.STATUS_INACTIVE)
+                            ).options(contains_eager(User.mate_ticket),
+                                      contains_eager(User.reserve_course),
                                       contains_eager(User.reserve_course).contains_eager(UserCourse.course_detail),
                                       contains_eager(User.reserve_course).contains_eager(UserCourse.course_detail),
                             ).filter(User.id == g.id).all()
