@@ -29,20 +29,6 @@ def get_home(session, g):
                                      CourseDetail.course_date.between(today, tomorrow)
                             ).options(contains_eager(Course.course_detail),
                             ).all()
-    reserve_courses = session.query(Course
-                            ).outerjoin(CourseDetail,
-                                        and_(CourseDetail.course_id == Course.id,
-                                             CourseDetail.status == constant.STATUS_ACTIVE)
-                            ).outerjoin(UserCourse,
-                                        and_(UserCourse.course_detail_id == CourseDetail.id,
-                                             UserCourse.status == constant.STATUS_ACTIVE)
-                            ).filter(Course.status == constant.STATUS_ACTIVE,
-                                     UserCourse.user_id == g.id,
-                            ).options(contains_eager(Course.course_detail),
-                                      contains_eager(Course.course_detail
-                                    ).contains_eager(CourseDetail.user_course_detail),
-                            ).all()
-
     reserve_courses = session.query(CourseDetail
                             ).outerjoin(Course,
                                         and_(CourseDetail.course_id == Course.id,
@@ -50,12 +36,11 @@ def get_home(session, g):
                             ).outerjoin(UserCourse,
                                         and_(UserCourse.course_detail_id == CourseDetail.id,
                                              UserCourse.status == constant.STATUS_ACTIVE)
-                            ).filter(Course.status == constant.STATUS_ACTIVE,
+                            ).filter(CourseDetail.status == constant.STATUS_ACTIVE,
                                      UserCourse.user_id == g.id,
                             ).options(contains_eager(CourseDetail.course),
                                       contains_eager(CourseDetail.user_course_detail),
                             ).all()
-    print(g.id, len(reserve_courses))
 
     response.result_data = {
         'recommend_users': user_list_schema.dump(recommend_users),
