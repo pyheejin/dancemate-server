@@ -27,11 +27,28 @@ def get_course(session, date):
                              and_(CourseDetail.course_date >= before_date_filter,
                                   CourseDetail.course_date <= after_date_filter),
                     ).options(contains_eager(CourseDetail.course),
-                              contains_eager(CourseDetail.user_course_detail),
                     ).all()
 
     response.result_data = {
         'count': len(courses),
-        'courses': course_detail_schema.dump(courses),
+        'courses': course_details_schema.dump(courses),
+    }
+    return response
+
+
+def get_course_detail(session, course_id):
+    response = DefaultModel()
+
+    courses = session.query(Course
+                    ).outerjoin(CourseDetail,
+                                and_(CourseDetail.course_id == Course.id,
+                                     CourseDetail.status == constant.STATUS_ACTIVE)
+                    ).filter(Course.status >= constant.STATUS_INACTIVE,
+                             Course.id == course_id
+                    ).options(contains_eager(Course.course_detail),
+                    ).all()
+
+    response.result_data = {
+        'course': course_schema.dump(courses[0]),
     }
     return response

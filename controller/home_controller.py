@@ -45,6 +45,6 @@ def get_home(session, g):
     response.result_data = {
         'recommend_users': user_list_schema.dump(recommend_users),
         'today_courses': course_list_schema.dump(today_courses),
-        'reserve_courses': course_detail_schema.dump(reserve_courses),
+        'reserve_courses': course_details_schema.dump(reserve_courses),
     }
     return response

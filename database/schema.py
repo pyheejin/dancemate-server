@@ -44,7 +44,8 @@ class CourseDetailSchema(Schema):
     course = fields.Nested(SimpleCourseListSchema(), many=False)
 
 
-course_detail_schema = CourseDetailSchema(many=True)
+course_details_schema = CourseDetailSchema(many=True)
+course_detail_schema = CourseDetailSchema(many=False)
 
 
 class CourseListSchema(Schema):
@@ -60,6 +61,7 @@ class CourseListSchema(Schema):
 
 
 course_list_schema = CourseListSchema(many=True)
+course_schema = CourseListSchema(many=False)
 
 
 class SearchKeywordSchema(Schema):
