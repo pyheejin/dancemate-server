@@ -39,6 +39,7 @@ class SimpleCourseListSchema(Schema):
 class CourseDetailSchema(Schema):
     id = fields.Int()
     title = fields.String()
+    address = fields.String()
     course_date = fields.DateTime('%m/%d')
 
     course = fields.Nested(SimpleCourseListSchema(), many=False)
@@ -54,6 +55,7 @@ class CourseListSchema(Schema):
     image_url = fields.String()
     user_id = fields.Int()
     count = fields.Int()
+    description = fields.String()
     last_course_date = fields.DateTime('%m/%d')
 
     dancer = fields.Nested(UserListSchema(), many=False)
