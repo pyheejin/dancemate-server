@@ -9,8 +9,9 @@ from database.base_model import DefaultModel
 def get_search_pre(session):
     response = DefaultModel()
 
-    date_format = '%Y-%m-%d %H:%M:%S'
-    today = datetime.strptime(datetime.now().date().strftime(date_format), date_format)
+    _format = '%Y-%m-%d %H:%M:%S'
+    today = datetime.strptime(datetime.now().date().strftime(_format), _format)
+    print(today)
 
     keyword_query = session.query(SearchKeyword)
 
@@ -23,14 +24,15 @@ def get_search_pre(session):
     recommend_courses = session.query(Course
                             ).outerjoin(CourseDetail,
                                         and_(CourseDetail.course_id == Course.id,
+                                             # CourseDetail.course_date >= today,
                                              CourseDetail.status == constant.STATUS_ACTIVE)
-                            ).outerjoin(RecommendUser,
-                                        and_(RecommendUser.user_id == Course.user_id,
-                                             RecommendUser.status == constant.STATUS_ACTIVE)
+                            # ).outerjoin(RecommendUser,
+                            #             and_(RecommendUser.user_id == Course.user_id,
+                            #                  RecommendUser.status == constant.STATUS_ACTIVE)
                             ).filter(Course.status == constant.STATUS_ACTIVE,
-                                     CourseDetail.course_date >= today,
+                                     Course.last_course_date >= today,
                             ).options(contains_eager(Course.course_detail),
-                            ).limit(3).all()
+                            ).all()[:3]
 
     response.result_data = {
         'latest_keyword': search_keyword_schema.dump(latest_keyword),
