@@ -130,6 +130,9 @@ class UserTicketSchema(Schema):
     ticket = fields.Nested(TicketSchema(), many=False)
 
 
+user_tickets_schema = UserTicketSchema(many=True)
+
+
 class UserDetailSchema(Schema):
     id = fields.Int()
     email = fields.String()

@@ -97,3 +97,35 @@ def post_user_login(session, request):
             response.access_token = access_token
             response.refresh_token = refresh_token
     return response
+
+
+def get_user_ticket(dancer_id, session, g):
+    response = DefaultModel()
+
+    date_format = '%Y-%m-%d %H:%M:%S'
+    today = datetime.strptime(datetime.now().date().strftime(date_format), date_format)
+
+    filter_list = []
+    if dancer_id is not None:
+        filter_list.append(Ticket.user_id == dancer_id)
+
+    tickets = session.query(UserTicket
+                    ).outerjoin(Ticket, UserTicket.ticket_id == Ticket.id,
+                    ).outerjoin(User, UserTicket.user_id == User.id,
+                    ).options(contains_eager(UserTicket.mate),
+                              contains_eager(UserTicket.ticket),
+                    ).filter(UserTicket.user_id == g.id,
+                             UserTicket.status >= constant.STATUS_INACTIVE,
+                             UserTicket.expired_date >= today,
+                             *filter_list,
+                    ).all()
+
+    result = []
+    for ticket in tickets:
+        result.append(f'{ticket.remain_count}회권 / {ticket.count}회권')
+
+    response.result_data = {
+        'result_count': len(tickets),
+        'tickets': result,
+    }
+    return response
