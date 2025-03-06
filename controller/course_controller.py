@@ -52,3 +52,35 @@ def get_course_detail(session, course_id):
         'course': course_schema.dump(courses[0]),
     }
     return response
+
+
+def get_course_detail_reserve(session, course_detail_id, g):
+    response = DefaultModel()
+
+    date_format = '%Y-%m-%d %H:%M:%S'
+    today = datetime.strptime(datetime.now().date().strftime(date_format), date_format)
+
+    courses = session.query(Course
+                    ).outerjoin(CourseDetail,
+                                and_(CourseDetail.course_id == Course.id,
+                                     CourseDetail.status == constant.STATUS_ACTIVE)
+                    ).filter(CourseDetail.id == course_detail_id
+                    ).options(contains_eager(Course.course_detail),
+                    ).all()
+
+    tickets = session.query(UserTicket
+                    ).outerjoin(Ticket, UserTicket.ticket_id == Ticket.id,
+                    ).outerjoin(User, UserTicket.user_id == User.id,
+                    ).options(contains_eager(UserTicket.mate),
+                              contains_eager(UserTicket.ticket),
+                    ).filter(UserTicket.user_id == g.id,
+                             UserTicket.status >= constant.STATUS_INACTIVE,
+                             UserTicket.expired_date >= today,
+                             Ticket.user_id == courses[0].user_id
+                    ).all()
+
+    response.result_data = {
+        'course': course_schema.dump(courses[0]),
+        'tickets': user_tickets_schema.dump(tickets),
+    }
+    return response
