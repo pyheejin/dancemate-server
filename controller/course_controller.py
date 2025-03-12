@@ -1,7 +1,9 @@
+from fastapi import HTTPException
 from sqlalchemy import and_
 from sqlalchemy.orm import contains_eager
 from datetime import timedelta
 
+from config.constant import *
 from database.models import *
 from database.schema import *
 from database.base_model import DefaultModel
@@ -82,5 +84,64 @@ def get_course_detail_reserve(session, course_detail_id, g):
     response.result_data = {
         'course': course_schema.dump(courses[0]),
         'tickets': user_tickets_schema.dump(tickets),
+    }
+    return response
+
+
+def post_course_detail_like(session, course_id, g):
+    response = DefaultModel()
+
+    course = session.query(Course
+                    ).filter(Course.id == course_id,
+                             Course.status == constant.STATUS_ACTIVE).first()
+    if course is None:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DIC[ERROR_DATA_NOT_EXIST][1])
+
+    like_course_query = session.query(UserCourseLike
+                                ).filter(UserCourseLike.user_id == g.id,
+                                         UserCourseLike.status == constant.STATUS_ACTIVE)
+    # 처음 찜한 경우
+    exists = like_course_query.filter(UserCourseLike.course_id == course_id).first()
+    if exists is None:
+        # 순서
+        like_course_list = like_course_query.all()
+
+        user_course_like = UserCourseLike()
+        user_course_like.order = len(like_course_list) + 1
+        user_course_like.user_id = g.id
+        user_course_like.course_id = course_id
+
+        session.add(user_course_like)
+    else:  # 이미 찜한 경우
+        exists.status = constant.STATUS_DELETED
+
+        # 순서 조정
+        order_query = like_course_query.filter(UserCourseLike.order > exists.order
+                                    ).order_by(UserCourseLike.order.asc()).all()
+        for like_course in order_query:
+            like_course.order -= 1
+
+    session.flush()
+    return response
+
+
+def get_course_like(session, g):
+    response = DefaultModel()
+
+    courses = session.query(Course
+                    ).outerjoin(UserCourseLike, UserCourseLike.course_id == Course.id,
+                    ).outerjoin(User, User.id == UserCourseLike.user_id,
+                    ).filter(Course.status == constant.STATUS_ACTIVE,
+                             UserCourseLike.user_id == g.id,
+                             UserCourseLike.status == constant.STATUS_ACTIVE,
+                    ).options(contains_eager(Course.course_like_user),
+                              contains_eager(Course.course_like_user
+                            ).contains_eager(UserCourseLike.user),
+                    ).order_by(UserCourseLike.order.asc()).all()
+
+    response.result_data = {
+        'result_count': len(courses),
+        'courses': course_list_schema.dump(courses),
     }
     return response

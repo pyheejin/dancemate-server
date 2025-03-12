@@ -55,7 +55,7 @@ def post_user_join(session, request):
     exists = session.query(User).filter(User.email == request.email).first()
     if exists:
         raise HTTPException(status_code=ERROR_DIC[ERROR_EMAIL_EXISTS][0],
-                            detail=ERROR_EMAIL_EXISTS)
+                            detail=ERROR_DIC[ERROR_EMAIL_EXISTS][1])
 
     user = User()
     user.type = request.type

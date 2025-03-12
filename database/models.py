@@ -33,6 +33,7 @@ class User(Base):
     reserve_course = relationship('UserCourse', back_populates='reserve')
     mate_ticket = relationship('UserTicket', back_populates='mate')
     dancer_ticket = relationship('Ticket', back_populates='dancer')
+    user_course_like = relationship('UserCourseLike', back_populates='user')
 
 
 class Course(Base):
@@ -51,6 +52,7 @@ class Course(Base):
 
     dancer = relationship('User', back_populates='dancer_course')
     course_detail = relationship('CourseDetail', back_populates='course')
+    course_like_user = relationship('UserCourseLike', back_populates='course')
 
 
 class CourseDetail(Base):
@@ -195,6 +197,22 @@ class UserCourse(Base):
 
     reserve = relationship('User', back_populates='reserve_course')
     course_detail = relationship('CourseDetail', back_populates='user_course_detail')
+
+
+class UserCourseLike(Base):
+    __tablename__ = 'user_course_like'
+
+    id = Column(Integer, primary_key=True, index=True)
+    status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
+    order = Column(Integer, default=1, comment='순서')
+    user_id = Column(Integer, ForeignKey('user.id'), comment='')
+    course_id = Column(Integer, ForeignKey('course.id'), comment='')
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    user = relationship('User', back_populates='user_course_like')
+    course = relationship('Course', back_populates='course_like_user')
+
 
 
 class SearchKeyword(Base):
