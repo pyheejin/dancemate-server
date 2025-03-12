@@ -96,7 +96,7 @@ def post_course_detail_like(session, course_id, g):
                              Course.status == constant.STATUS_ACTIVE).first()
     if course is None:
         raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
-                            detail=ERROR_DIC[ERROR_DATA_NOT_EXIST][1])
+                            detail=ERROR_DATA_NOT_EXIST)
 
     like_course_query = session.query(UserCourseLike
                                 ).filter(UserCourseLike.user_id == g.id,
