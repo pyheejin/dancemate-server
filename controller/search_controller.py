@@ -48,8 +48,8 @@ def get_search(session, keyword):
     date_format = '%Y-%m-%d %H:%M:%S'
     today = datetime.strptime(datetime.now().date().strftime(date_format), date_format)
 
-    courses = session.query(CourseDetail
-                    ).outerjoin(Course,
+    courses = session.query(Course
+                    ).outerjoin(CourseDetail,
                                 and_(CourseDetail.course_id == Course.id,
                                      Course.status == constant.STATUS_ACTIVE)
                     ).outerjoin(User,
@@ -59,12 +59,12 @@ def get_search(session, keyword):
                              CourseDetail.course_date >= today,
                              or_(Course.title.like(f'%{keyword}%'),
                                  Course.description.like(f'%{keyword}%')),
-                    ).options(contains_eager(CourseDetail.course),
-                              contains_eager(CourseDetail.course).contains_eager(Course.dancer),
+                    ).options(contains_eager(Course.course_detail),
+                              contains_eager(Course.dancer),
                     ).all()
 
     response.result_data = {
         'result_count': len(courses),
-        'courses': search_course_detail_schema.dump(courses),
+        'courses': course_list_schema.dump(courses),
     }
     return response
