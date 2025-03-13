@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from config.common import error_response, get_current_user
 from database.database import db
+from database.models import User
 from database.base_model import DefaultModel
 from controller import search_controller
 
@@ -43,11 +44,13 @@ def get_search_pre(session: Session = Depends(db.session)):
 
 @router.get('', tags=['search'], summary='검색', dependencies=[Depends(get_current_user)])
 def get_search(session: Session = Depends(db.session),
-               keyword: Optional[str] = None):
+               keyword: Optional[str] = None,
+               g: User = Depends(get_current_user)):
     result_msg = '검색'
     try:
         response = search_controller.get_search(session=session,
-                                                keyword=keyword)
+                                                keyword=keyword,
+                                                g=g)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()

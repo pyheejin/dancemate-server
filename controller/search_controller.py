@@ -42,7 +42,7 @@ def get_search_pre(session):
     return response
 
 
-def get_search(session, keyword):
+def get_search(session, keyword, g):
     response = DefaultModel()
 
     date_format = '%Y-%m-%d %H:%M:%S'
@@ -55,12 +55,17 @@ def get_search(session, keyword):
                     ).outerjoin(User,
                                 and_(User.id == Course.user_id,
                                      User.status == constant.STATUS_ACTIVE)
+                    ).outerjoin(UserCourseLike,
+                                and_(UserCourseLike.course_id == Course.id,
+                                     UserCourseLike.user_id == g.id,
+                                     UserCourseLike.status == constant.STATUS_ACTIVE)
                     ).filter(CourseDetail.status == constant.STATUS_ACTIVE,
                              CourseDetail.course_date >= today,
                              or_(Course.title.like(f'%{keyword}%'),
                                  Course.description.like(f'%{keyword}%')),
                     ).options(contains_eager(Course.course_detail),
                               contains_eager(Course.dancer),
+                              contains_eager(Course.course_like_user),
                     ).all()
 
     response.result_data = {

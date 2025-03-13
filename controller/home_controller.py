@@ -25,9 +25,16 @@ def get_home(session, g):
                             ).outerjoin(UserCourse,
                                         and_(UserCourse.course_detail_id == CourseDetail.id,
                                              UserCourse.status == constant.STATUS_ACTIVE)
+                            ).outerjoin(UserCourseLike,
+                                        and_(UserCourseLike.course_id == Course.id,
+                                             UserCourseLike.user_id == g.id,
+                                             UserCourseLike.status == constant.STATUS_ACTIVE)
                             ).filter(Course.status == constant.STATUS_ACTIVE,
                                      CourseDetail.course_date.between(today, tomorrow)
                             ).options(contains_eager(Course.course_detail),
+                                      contains_eager(Course.course_like_user),
+                                      contains_eager(Course.course_detail
+                                    ).contains_eager(CourseDetail.user_course_detail),
                             ).all()
     reserve_courses = session.query(CourseDetail
                             ).outerjoin(Course,
@@ -36,10 +43,16 @@ def get_home(session, g):
                             ).outerjoin(UserCourse,
                                         and_(UserCourse.course_detail_id == CourseDetail.id,
                                              UserCourse.status == constant.STATUS_ACTIVE)
+                            ).outerjoin(UserCourseLike,
+                                        and_(UserCourseLike.course_id == Course.id,
+                                             UserCourseLike.user_id == g.id,
+                                             UserCourseLike.status == constant.STATUS_ACTIVE)
                             ).filter(CourseDetail.status == constant.STATUS_ACTIVE,
                                      UserCourse.user_id == g.id,
                             ).options(contains_eager(CourseDetail.course),
                                       contains_eager(CourseDetail.user_course_detail),
+                                      contains_eager(CourseDetail.course
+                                    ).contains_eager(Course.course_like_user),
                             ).all()
 
     response.result_data = {

@@ -38,16 +38,21 @@ def get_course(session, date):
     return response
 
 
-def get_course_detail(session, course_id):
+def get_course_detail(session, course_id, g):
     response = DefaultModel()
 
     courses = session.query(Course
                     ).outerjoin(CourseDetail,
                                 and_(CourseDetail.course_id == Course.id,
                                      CourseDetail.status == constant.STATUS_ACTIVE)
+                    ).outerjoin(UserCourseLike,
+                                and_(UserCourseLike.course_id == Course.id,
+                                     UserCourseLike.user_id == g.id,
+                                     UserCourseLike.status == constant.STATUS_ACTIVE)
                     ).filter(Course.status >= constant.STATUS_INACTIVE,
                              Course.id == course_id
                     ).options(contains_eager(Course.course_detail),
+                              contains_eager(Course.course_like_user),
                     ).all()
 
     response.result_data = {
