@@ -150,11 +150,13 @@ class UserTicketSchema(Schema):
     count = fields.Int()
     remain_count = fields.Int()
     expired_date = fields.DateTime('%Y.%m.%d까지')
+    created_at = fields.DateTime('%Y-%m-%d')
 
     ticket = fields.Nested(TicketSchema(), many=False)
 
 
 user_tickets_schema = UserTicketSchema(many=True)
+user_ticket_schema = UserTicketSchema(many=False)
 
 
 class UserDetailSchema(Schema):

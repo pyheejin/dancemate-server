@@ -107,7 +107,8 @@ def get_user_ticket(dancer_id, session, g):
 
     filter_list = []
     if dancer_id is not None:
-        filter_list.append(Ticket.user_id == dancer_id)
+        if dancer_id > 0:
+            filter_list.append(Ticket.user_id == dancer_id)
 
     tickets = session.query(UserTicket
                     ).outerjoin(Ticket, UserTicket.ticket_id == Ticket.id,
@@ -118,11 +119,21 @@ def get_user_ticket(dancer_id, session, g):
                              UserTicket.status >= constant.STATUS_INACTIVE,
                              UserTicket.expired_date >= today,
                              *filter_list,
+                    ).order_by(UserTicket.created_at
                     ).all()
 
     result = []
-    for ticket in tickets:
-        result.append(f'{ticket.remain_count}회권 / {ticket.count}회권')
+    for user_ticket in user_tickets_schema.dump(tickets):
+        if not list(filter(lambda e: user_ticket['created_at'] in e.keys(), result)):
+            result.append({user_ticket['created_at']: []})
+
+    for user_ticket in user_tickets_schema.dump(tickets):
+        ticket = {
+            'dancer_nickname': user_ticket['ticket']['dancer']['nickname'],
+            'count': user_ticket['ticket']['count'],
+            'print': user_ticket['ticket']['price']
+        }
+        list(filter(lambda e: user_ticket['created_at'] in e.keys(), result))[0][user_ticket['created_at']].append(ticket)
 
     response.result_data = {
         'result_count': len(tickets),
