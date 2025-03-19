@@ -119,21 +119,25 @@ def get_user_ticket(dancer_id, session, g):
                              UserTicket.status >= constant.STATUS_INACTIVE,
                              UserTicket.expired_date >= today,
                              *filter_list,
-                    ).order_by(UserTicket.created_at
+                    ).order_by(UserTicket.created_at.desc()
                     ).all()
 
     result = []
     for user_ticket in user_tickets_schema.dump(tickets):
-        if not list(filter(lambda e: user_ticket['created_at'] in e.keys(), result)):
-            result.append({user_ticket['created_at']: []})
+        if not next((e for e in result if e['date'] == user_ticket['created_at']), None):
+            result.append({
+                'date': user_ticket['created_at'],
+                'ticket_list': [],
+            })
 
     for user_ticket in user_tickets_schema.dump(tickets):
-        ticket = {
-            'dancer_nickname': user_ticket['ticket']['dancer']['nickname'],
-            'count': user_ticket['ticket']['count'],
-            'print': user_ticket['ticket']['price']
-        }
-        list(filter(lambda e: user_ticket['created_at'] in e.keys(), result))[0][user_ticket['created_at']].append(ticket)
+        if next((e for e in result if e['date'] == user_ticket['created_at']), None):
+            ticket = {
+                'nickname': user_ticket['ticket']['dancer']['nickname'],
+                'count': f"{user_ticket['ticket']['count']}회권",
+                'price': format(user_ticket['ticket']['price'], ',d')
+            }
+            next((e for e in result if e['date'] == user_ticket['created_at']))['ticket_list'].append(ticket)
 
     response.result_data = {
         'result_count': len(tickets),
