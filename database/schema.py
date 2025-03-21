@@ -171,3 +171,16 @@ class UserDetailSchema(Schema):
 
 
 user_detail_schema = UserDetailSchema(many=False)
+
+
+class PaymentDetailSchema(Schema):
+    id = fields.Int()
+    user_id = fields.Int()
+    ticket_id = fields.Int()
+    user_ticket_id = fields.Int()
+    data = fields.String()
+
+    user_ticket = fields.Nested(UserTicketSchema(), many=False)
+
+
+payment_detail_schema = PaymentDetailSchema(many=False)

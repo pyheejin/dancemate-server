@@ -34,6 +34,7 @@ class User(Base):
     mate_ticket = relationship('UserTicket', back_populates='mate')
     dancer_ticket = relationship('Ticket', back_populates='dancer')
     user_course_like = relationship('UserCourseLike', back_populates='user')
+    payment = relationship('Payment', back_populates='user')
 
 
 class Course(Base):
@@ -116,6 +117,7 @@ class UserTicket(Base):
 
     mate = relationship('User', back_populates='mate_ticket')
     ticket = relationship('Ticket', back_populates='mate_ticket')
+    payment = relationship('Payment', back_populates='user_ticket')
 
 
 class UserTicketCourseDetail(Base):
@@ -137,11 +139,14 @@ class Payment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
-    user_id = Column(Integer, comment='')
-    ticket_id = Column(Integer, comment='')
+    user_id = Column(Integer, ForeignKey('user.id'), comment='')
+    user_ticket_id = Column(Integer, ForeignKey('user_ticket.id'), comment='')
     data = Column(Text, comment='결제 데이터')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    user = relationship('User', back_populates='payment')
+    user_ticket = relationship('UserTicket', back_populates='payment')
 
 
 class Qna(Base):
