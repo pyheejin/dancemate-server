@@ -141,6 +141,7 @@ class Payment(Base):
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
     user_id = Column(Integer, ForeignKey('user.id'), comment='')
     user_ticket_id = Column(Integer, ForeignKey('user_ticket.id'), comment='')
+    price = Column(Integer, comment='결제 금액')
     data = Column(Text, comment='결제 데이터')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)

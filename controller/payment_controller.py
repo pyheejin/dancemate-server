@@ -23,7 +23,6 @@ def post_payment(session, request, g):
 
     user_ticket = UserTicket()
     session.add(user_ticket)
-    session.flush()
 
     user_ticket.user_id = g.id
     user_ticket.ticket_id = request.ticket_id
@@ -33,9 +32,15 @@ def post_payment(session, request, g):
 
     payment = Payment()
     session.add(payment)
+    session.flush()
 
     payment.user_id = g.id
     payment.user_ticket_id = user_ticket.id
+    payment.price = ticket.price
+
+    response.result_data = {
+        'payment': payment_detail_schema.dump(payment)
+    }
     return response
 
 

@@ -26,6 +26,7 @@ class UserListSchema(Schema):
 
 
 user_list_schema = UserListSchema(many=True)
+user_schema = UserListSchema(many=False)
 
 
 class UserCourseLikeSchema(Schema):
@@ -142,6 +143,10 @@ class TicketSchema(Schema):
     dancer = fields.Nested(UserListSchema(), many=False)
 
 
+tickets_schema = TicketSchema(many=True)
+ticket_schema = TicketSchema(many=False)
+
+
 class UserTicketSchema(Schema):
     id = fields.Int()
     status = fields.Int()
@@ -179,6 +184,8 @@ class PaymentDetailSchema(Schema):
     ticket_id = fields.Int()
     user_ticket_id = fields.Int()
     data = fields.String()
+    price = fields.Int()
+    created_at = fields.DateTime('%Y-%m-%d %H:%M:%S')
 
     user_ticket = fields.Nested(UserTicketSchema(), many=False)
 

@@ -12,6 +12,9 @@ from config.constant import *
 def get_user(session, g):
     response = DefaultModel()
 
+    _format = '%Y-%m-%d %H:%M:%S'
+    today = datetime.strptime(datetime.now().date().strftime(_format), _format)
+
     user = session.query(User).outerjoin(UserCourse,
                                          and_(UserCourse.user_id == User.id,
                                               UserCourse.status >= constant.STATUS_INACTIVE)
@@ -24,11 +27,13 @@ def get_user(session, g):
                             ).outerjoin(UserTicket,
                                         and_(UserTicket.user_id == User.id,
                                              UserTicket.status >= constant.STATUS_INACTIVE)
+                            ).filter(User.id == g.id,
+                                     UserTicket.expired_date >= today,
                             ).options(contains_eager(User.mate_ticket),
                                       contains_eager(User.reserve_course),
                                       contains_eager(User.reserve_course).contains_eager(UserCourse.course_detail),
                                       contains_eager(User.reserve_course).contains_eager(UserCourse.course_detail),
-                            ).filter(User.id == g.id).all()
+                            ).all()
 
     response.result_data = {
         'user': user_detail_schema.dump(user[0]),
