@@ -142,6 +142,7 @@ class Payment(Base):
     user_id = Column(Integer, ForeignKey('user.id'), comment='')
     user_ticket_id = Column(Integer, ForeignKey('user_ticket.id'), comment='')
     price = Column(Integer, comment='결제 금액')
+    method = Column(Integer, comment='결제 방법(1:카드, 2:무통장, 3:간편결제)')
     data = Column(Text, comment='결제 데이터')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
