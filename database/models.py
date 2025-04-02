@@ -198,6 +198,7 @@ class UserCourse(Base):
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
     user_id = Column(Integer, ForeignKey('user.id'), comment='')
+    user_ticket_id = Column(Integer, comment='')
     course_detail_id = Column(Integer, ForeignKey('course_detail.id'), comment='')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)

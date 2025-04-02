@@ -93,6 +93,22 @@ def get_course_detail_reserve(session, course_detail_id, g):
     return response
 
 
+def post_course_detail_reserve(course_detail_id, request, session, g):
+    response = DefaultModel()
+
+    user_course = UserCourse()
+    session.add(user_course)
+
+    user_course.user_id = g.id
+    user_course.user_ticket_id = request.user_ticket_id
+    user_course.course_detail_id = course_detail_id
+
+    user_ticket = session.query(UserTicket
+                        ).filter(UserTicket.id == request.user_ticket_id).first()
+    user_ticket.remain_count -= 1
+    return response
+
+
 def post_course_detail_like(session, course_id, g):
     response = DefaultModel()
 
