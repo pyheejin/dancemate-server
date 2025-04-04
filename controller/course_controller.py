@@ -41,6 +41,9 @@ def get_course(session, date):
 def get_course_detail(session, course_id, g):
     response = DefaultModel()
 
+    date_format = '%Y-%m-%d %H:%M:%S'
+    now = datetime.strptime(datetime.now().strftime(date_format), date_format)
+
     courses = session.query(Course
                     ).outerjoin(CourseDetail,
                                 and_(CourseDetail.course_id == Course.id,
@@ -50,7 +53,8 @@ def get_course_detail(session, course_id, g):
                                      UserCourseLike.user_id == g.id,
                                      UserCourseLike.status == constant.STATUS_ACTIVE)
                     ).filter(Course.status >= constant.STATUS_INACTIVE,
-                             Course.id == course_id
+                             Course.id == course_id,
+                             CourseDetail.course_date >= now,
                     ).options(contains_eager(Course.course_detail),
                               contains_eager(Course.course_like_user),
                     ).all()
@@ -96,17 +100,22 @@ def get_course_detail_reserve(session, course_detail_id, g):
 def post_course_detail_reserve(course_detail_id, request, session, g):
     response = DefaultModel()
 
-    exists = session.query(UserCourse).filter(UserCourse.user_id == g.id,
-                                              UserCourse.course_detail_id == course_detail_id).first()
-    if exists:
+    exists = session.query(UserCourse
+                    ).filter(UserCourse.user_id == g.id,
+                             UserCourse.course_detail_id == course_detail_id
+                    ).first()
+    if exists is not None:
         raise HTTPException(status_code=ERROR_DIC[ERROR_COURSE_RESERVE_EXISTS][0],
                             detail=ERROR_COURSE_RESERVE_EXISTS)
 
     date_format = '%Y-%m-%d %H:%M:%S'
     now = datetime.strptime(datetime.now().strftime(date_format), date_format)
-    if exists.course_detail.course_date < now:
-        raise HTTPException(status_code=ERROR_DIC[ERROR_PAST_SESSION_CANNOT_BE_RESERVED][0],
-                            detail=ERROR_PAST_SESSION_CANNOT_BE_RESERVED)
+
+    course_detail = session.query(CourseDetail).filter(CourseDetail.id == course_detail_id).first()
+    if course_detail is not None:
+        if course_detail.course_date < now:
+            raise HTTPException(status_code=ERROR_DIC[ERROR_PAST_SESSION_CANNOT_BE_RESERVED][0],
+                                detail=ERROR_PAST_SESSION_CANNOT_BE_RESERVED)
 
     user_course = UserCourse()
     session.add(user_course)
@@ -116,7 +125,8 @@ def post_course_detail_reserve(course_detail_id, request, session, g):
     user_course.course_detail_id = course_detail_id
 
     user_ticket = session.query(UserTicket
-                        ).filter(UserTicket.id == request.user_ticket_id).first()
+                        ).filter(UserTicket.id == request.user_ticket_id
+                        ).first()
     user_ticket.remain_count -= 1
     return response
 
