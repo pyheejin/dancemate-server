@@ -1,4 +1,4 @@
-from sqlalchemy import and_
+from sqlalchemy import and_, false
 from sqlalchemy.orm import contains_eager
 from fastapi import HTTPException
 
@@ -9,7 +9,7 @@ from config.jwt_handler import JWT
 from config.constant import *
 
 
-def get_user(session, g):
+def get_user_profile(session, g):
     response = DefaultModel()
 
     _format = '%Y-%m-%d %H:%M:%S'
@@ -41,13 +41,41 @@ def get_user(session, g):
     return response
 
 
-def get_user_detail(session, user_id):
+def get_user_detail(session, g, user_id):
     response = DefaultModel()
 
-    user = session.query(User).filter(User.id == user_id).first()
+    is_mine = False
+    if g.id == user_id:
+        is_mine = True
+
+    _format = '%Y-%m-%d %H:%M:%S'
+    today = datetime.strptime(datetime.now().date().strftime(_format), _format)
+
+    user = session.query(User).outerjoin(UserCourse,
+                                         and_(UserCourse.user_id == User.id,
+                                              UserCourse.status >= constant.STATUS_INACTIVE)
+                            ).outerjoin(CourseDetail,
+                                        and_(CourseDetail.id == UserCourse.course_detail_id,
+                                             CourseDetail.status == constant.STATUS_ACTIVE)
+                            ).outerjoin(Course,
+                                        and_(CourseDetail.course_id == Course.id,
+                                             Course.status == constant.STATUS_ACTIVE)
+                            ).outerjoin(UserTicket,
+                                        and_(UserTicket.user_id == User.id,
+                                             UserTicket.status >= constant.STATUS_INACTIVE)
+                            ).filter(User.id == g.id,
+                                     UserTicket.expired_date >= today,
+                            ).options(contains_eager(User.mate_ticket),
+                                      contains_eager(User.reserve_course),
+                                      contains_eager(User.reserve_course
+                                    ).contains_eager(UserCourse.course_detail),
+                                      contains_eager(User.reserve_course
+                                    ).contains_eager(UserCourse.course_detail),
+                            ).all()
 
     response.result_data = {
-        'user': user_detail_schema.dump(user),
+        'user': user_detail_schema.dump(user[0]),
+        'is_mine': is_mine,
     }
     return response
 
@@ -99,6 +127,7 @@ def post_user_login(session, request):
             user.refresh_token = refresh_token
             user.last_login_date = datetime.now()
 
+            response.user_id = user.id
             response.access_token = access_token
             response.refresh_token = refresh_token
     return response

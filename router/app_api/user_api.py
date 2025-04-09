@@ -57,13 +57,13 @@ def post_user_join(request: PostUserJoinModel,
     return response
 
 
-@router.get('', tags=['user'], summary='유저 목록', dependencies=[Depends(get_current_user)])
-def get_user(session: Session = Depends(db.session),
-             g: User = Depends(get_current_user)):
-    result_msg = '유저 목록'
+@router.get('/profile', tags=['user'], summary='마이 페이지', dependencies=[Depends(get_current_user)])
+def get_user_profile(session: Session = Depends(db.session),
+                     g: User = Depends(get_current_user)):
+    result_msg = '마이 페이지'
     try:
-        response = user_controller.get_user(session=session,
-                                            g=g)
+        response = user_controller.get_user_profile(session=session,
+                                                    g=g)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()
@@ -121,12 +121,12 @@ def get_user_ticket(session: Session = Depends(db.session),
 
 @router.get('/{user_id}', tags=['user'], summary='유저 상세', dependencies=[Depends(get_current_user)])
 def get_user_detail(user_id: int,
-                    # g: User = Depends(get_current_user),
+                    g: User = Depends(get_current_user),
                     session: Session = Depends(db.session)):
     result_msg = '유저 상세'
     try:
         response = user_controller.get_user_detail(user_id=user_id,
-                                                   # g=g,
+                                                   g=g,
                                                    session=session)
     except HTTPException as e:
         print(f'error: {e.detail}')
