@@ -20,13 +20,15 @@ def get_user_profile(session, g):
                                               UserCourse.status >= constant.STATUS_INACTIVE)
                             ).outerjoin(CourseDetail,
                                         and_(CourseDetail.id == UserCourse.course_detail_id,
-                                             CourseDetail.status == constant.STATUS_ACTIVE)
+                                             CourseDetail.status == constant.STATUS_ACTIVE,
+                                             CourseDetail.course_date >= today)
                             ).outerjoin(Course,
                                         and_(CourseDetail.course_id == Course.id,
                                              Course.status == constant.STATUS_ACTIVE)
                             ).outerjoin(UserTicket,
                                         and_(UserTicket.user_id == User.id,
-                                             UserTicket.status >= constant.STATUS_INACTIVE)
+                                             UserTicket.status >= constant.STATUS_INACTIVE,
+                                             UserTicket.remain_count > 0)
                             ).filter(User.id == g.id,
                                      UserTicket.expired_date >= today,
                             ).options(contains_eager(User.mate_ticket),
