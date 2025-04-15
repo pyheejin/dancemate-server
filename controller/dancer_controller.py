@@ -25,3 +25,20 @@ def get_dancer_detail_ticket(dancer_id, session):
         'tickets': tickets_schema.dump(tickets),
     }
     return response
+
+
+def get_dancer_course(session, g):
+    response = DefaultModel()
+
+    courses = session.query(Course
+                    ).outerjoin(User, User.id == Course.user_id,
+                    ).filter(Course.status == constant.STATUS_ACTIVE,
+                             Course.user_id == g.id,
+                    ).options(contains_eager(Course.dancer),
+                    ).order_by(Course.created_at.desc()).all()
+
+    response.result_data = {
+        'result_count': len(courses),
+        'courses': course_list_schema.dump(courses),
+    }
+    return response

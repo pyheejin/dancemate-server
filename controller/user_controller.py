@@ -28,9 +28,9 @@ def get_user_profile(session, g):
                             ).outerjoin(UserTicket,
                                         and_(UserTicket.user_id == User.id,
                                              UserTicket.status >= constant.STATUS_INACTIVE,
-                                             UserTicket.remain_count > 0)
+                                             UserTicket.remain_count > 0,
+                                             UserTicket.expired_date >= today)
                             ).filter(User.id == g.id,
-                                     UserTicket.expired_date >= today,
                             ).options(contains_eager(User.mate_ticket),
                                       contains_eager(User.reserve_course),
                                       contains_eager(User.reserve_course).contains_eager(UserCourse.course_detail),

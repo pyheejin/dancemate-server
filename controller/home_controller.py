@@ -10,9 +10,10 @@ from database.base_model import DefaultModel
 def get_home(session, g):
     response = DefaultModel()
 
-    format = '%Y-%m-%d %H:%M:%S'
-    today = datetime.strptime(datetime.now().date().strftime(format), format)
-    tomorrow = datetime.strptime((datetime.now().date()+timedelta(days=1)).strftime(format), format)
+    _format = '%Y-%m-%d %H:%M:%S'
+    now = datetime.now().date()
+    today = datetime.strptime(now.strftime(_format), _format)
+    tomorrow = datetime.strptime((now+timedelta(days=1)).strftime(_format), _format)
 
     recommend_users = session.query(User
                             ).outerjoin(RecommendUser, RecommendUser.user_id == User.id
@@ -48,6 +49,7 @@ def get_home(session, g):
                                              UserCourseLike.user_id == g.id,
                                              UserCourseLike.status == constant.STATUS_ACTIVE)
                             ).filter(CourseDetail.status == constant.STATUS_ACTIVE,
+                                     CourseDetail.course_date >= today,
                                      UserCourse.user_id == g.id,
                             ).options(contains_eager(CourseDetail.course),
                                       contains_eager(CourseDetail.user_course_detail),

@@ -131,6 +131,35 @@ def post_course_detail_reserve(course_detail_id, request, session, g):
     return response
 
 
+def post_course_detail_cancel(course_detail_id, session, g):
+    response = DefaultModel()
+
+    _format = '%Y-%m-%d %H:%M:%S'
+    now = datetime.strptime(datetime.now().strftime(_format), _format)
+
+    user_course = session.query(UserCourse
+                    ).filter(UserCourse.user_id == g.id,
+                             UserCourse.course_detail_id == course_detail_id
+                    ).first()
+    if user_course is None:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DATA_NOT_EXIST)
+
+    course_detail = session.query(CourseDetail).filter(CourseDetail.id == course_detail_id).first()
+    if course_detail is not None:
+        if course_detail.course_date < now:
+            raise HTTPException(status_code=ERROR_DIC[ERROR_PAST_SESSION_CANNOT_BE_CANCELED][0],
+                                detail=ERROR_PAST_SESSION_CANNOT_BE_CANCELED)
+
+    user_course.status = constant.STATUS_DELETED
+
+    user_ticket = session.query(UserTicket
+                        ).filter(UserTicket.id == user_course.user_ticket_id
+                        ).first()
+    user_ticket.remain_count += 1
+    return response
+
+
 def post_course_detail_like(session, course_id, g):
     response = DefaultModel()
 

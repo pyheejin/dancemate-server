@@ -14,6 +14,7 @@ ERROR_EMAIL_EXISTS = 'email_exists'
 ERROR_COURSE_RESERVE_EXISTS = 'course_reserve_exists'
 ERROR_PAYMENT_TICKET_EXISTS = 'payment_ticket_exists'
 ERROR_PAST_SESSION_CANNOT_BE_RESERVED = 'past_session_cannot_be_reserved'
+ERROR_PAST_SESSION_CANNOT_BE_CANCELED = 'past_session_cannot_be_canceled'
 ERROR_BAD_REQUEST = 'bad_request'
 ERROR_UNAUTHORIZED = 'unauthorized'
 ERROR_TOKEN_EXPIRED = 'token_expired'
@@ -26,6 +27,7 @@ ERROR_DIC = {
     ERROR_COURSE_RESERVE_EXISTS: (208, '이미 예약한 회차입니다.'),
     ERROR_PAYMENT_TICKET_EXISTS: (209, '이미 결제한 티켓입니다.'),
     ERROR_PAST_SESSION_CANNOT_BE_RESERVED: (210, '지난 회차는 예약할 수 없습니다.'),
+    ERROR_PAST_SESSION_CANNOT_BE_CANCELED: (211, '지난 수업은 취소할 수 없습니다.'),
     ERROR_BAD_REQUEST: (400, '잘못된 요청입니다'),
     ERROR_UNAUTHORIZED: (401, '로그인이 필요합니다'),
     ERROR_TOKEN_EXPIRED: (404, '토큰이 만료되었습니다.'),
