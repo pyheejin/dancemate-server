@@ -1,3 +1,4 @@
+from dateutil.utils import today
 from fastapi import HTTPException
 from sqlalchemy import and_
 from sqlalchemy.orm import contains_eager
@@ -38,11 +39,60 @@ def get_course(session, date):
     return response
 
 
+def post_course(request, session, g):
+    response = DefaultModel()
+
+    if g.type != constant.USER_TYPE_DANCER:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DANCER_ONLY][0],
+                            detail=ERROR_DANCER_ONLY)
+
+    _format = '%Y-%m-%d %H:%M:%S'
+    now = datetime.now()
+    today = datetime.strptime(now.strftime(_format), _format)
+
+    course = Course()
+    session.add(course)
+
+    course.status = request.status
+    course.user_id = g.id
+    course.title = request.title
+    course.description = request.description
+    session.flush()
+
+    for detail in request.detail_list:
+        if today > datetime.strptime(detail.course_date, _format):
+            raise HTTPException(status_code=ERROR_DIC[ERROR_PAST_SESSION_CANNOT_BE_CREATED][0],
+                                detail=ERROR_PAST_SESSION_CANNOT_BE_CREATED)
+
+        course_detail = CourseDetail()
+        session.add(course_detail)
+
+        course_detail.course_id = course.id
+        course_detail.title = detail.title
+        course_detail.course_date = detail.course_date
+        course_detail.address = detail.address
+        course_detail.address_detail = detail.address_detail
+
+    course.count = len(request.detail_list)
+    course.last_course_date = request.detail_list[-1].course_date
+
+    response.result_data = {
+        'course_id': course.id
+    }
+    return response
+
+
 def get_course_detail(session, course_id, g):
     response = DefaultModel()
 
     date_format = '%Y-%m-%d %H:%M:%S'
     now = datetime.strptime(datetime.now().strftime(date_format), date_format)
+
+    filter_list = []
+    course = session.query(Course).filter(Course.user_id == g.id).first()
+    if course is None:
+        if g.type == constant.USER_TYPE_MATE:
+            filter_list.append(CourseDetail.course_date >= now)
 
     courses = session.query(Course
                     ).outerjoin(CourseDetail,
@@ -54,7 +104,7 @@ def get_course_detail(session, course_id, g):
                                      UserCourseLike.status == constant.STATUS_ACTIVE)
                     ).filter(Course.status >= constant.STATUS_INACTIVE,
                              Course.id == course_id,
-                             CourseDetail.course_date >= now,
+                             *filter_list,
                     ).options(contains_eager(Course.course_detail),
                               contains_eager(Course.course_like_user),
                     ).all()
