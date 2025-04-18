@@ -25,6 +25,7 @@ class User(Base):
     last_login_date = Column(DateTime, comment='최종 방문일')
     access_token = Column(String(255), comment='')
     refresh_token = Column(String(255), comment='')
+    expired_day = Column(Integer, default=30, comment='티켓 유효기간')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
@@ -94,6 +95,7 @@ class Ticket(Base):
     user_id = Column(Integer, ForeignKey('user.id'), comment='')
     count = Column(Integer, comment='회차')
     cost = Column(Integer, comment='정가')
+    discount_rate = Column(Integer, comment='할인율')
     price = Column(Integer, comment='판매가')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)

@@ -82,6 +82,51 @@ def post_course(request, session, g):
     return response
 
 
+def put_course_detail(course_id, request, session, g):
+    response = DefaultModel()
+
+    _format = '%Y-%m-%d %H:%M:%S'
+    now = datetime.now()
+    today = datetime.strptime(now.strftime(_format), _format)
+
+    course = session.query(Course).filter(Course.id == course_id).first()
+    if course is None:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DATA_NOT_EXIST)
+
+    course.status = request.status
+    course.user_id = g.id
+    course.title = request.title
+    course.description = request.description
+
+    detail_query = session.query(CourseDetail
+                        ).filter(CourseDetail.course_id == course_id,
+                                 CourseDetail.status >= constant.STATUS_INACTIVE)
+    detail_query.update({'status': constant.STATUS_DELETED}, synchronize_session=False)
+
+    for detail in request.detail_list:
+        if today > datetime.strptime(detail.course_date, _format):
+            raise HTTPException(status_code=ERROR_DIC[ERROR_PAST_SESSION_CANNOT_BE_CREATED][0],
+                                detail=ERROR_PAST_SESSION_CANNOT_BE_CREATED)
+
+        course_detail = CourseDetail()
+        session.add(course_detail)
+
+        course_detail.course_id = course.id
+        course_detail.title = detail.title
+        course_detail.course_date = detail.course_date
+        course_detail.address = detail.address
+        course_detail.address_detail = detail.address_detail
+
+    course.count = len(request.detail_list)
+    course.last_course_date = request.detail_list[-1].course_date
+
+    response.result_data = {
+        'course_id': course.id
+    }
+    return response
+
+
 def get_course_detail(session, course_id, g):
     response = DefaultModel()
 

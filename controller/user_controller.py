@@ -101,6 +101,11 @@ def post_user_join(session, request):
     user.phone = request.phone
     user.introduction = request.introduction
 
+    if request.type == constant.USER_TYPE_MATE:
+        user.expired_day = 0
+    else:
+        user.expired_day = 30
+
     session.add(user)
     session.flush()
 
