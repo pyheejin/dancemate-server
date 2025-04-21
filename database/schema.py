@@ -139,6 +139,7 @@ class TicketSchema(Schema):
     count = fields.Int()
     cost = fields.Int()
     price = fields.Int()
+    discount_rate = fields.Int()
 
     dancer = fields.Nested(UserListSchema(), many=False)
 
