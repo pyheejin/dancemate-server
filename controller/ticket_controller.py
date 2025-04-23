@@ -18,7 +18,7 @@ def get_ticket(session, g):
                     ).filter(Ticket.user_id == g.id,
                              Ticket.status >= constant.STATUS_INACTIVE,
                     ).options(contains_eager(Ticket.dancer),
-                    ).all()
+                    ).order_by(Ticket.created_at.desc()).all()
 
     response.result_data = {
         'count': len(tickets),

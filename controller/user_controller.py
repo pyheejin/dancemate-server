@@ -174,9 +174,15 @@ def get_user_ticket(dancer_id, session, g):
     for user_ticket in user_tickets_schema.dump(tickets):
         if next((e for e in result if e['date'] == user_ticket['created_at']), None):
             ticket = {
-                'nickname': user_ticket['ticket']['dancer']['nickname'],
+                'dancer': {
+                    'nickname': user_ticket['ticket']['dancer']['nickname'],
+                    'email': user_ticket['ticket']['dancer']['email'],
+                    'image_url': user_ticket['ticket']['dancer']['image_url'],
+                },
                 'count': f"{user_ticket['ticket']['count']}회권",
-                'price': format(user_ticket['ticket']['price'], ',d')
+                'price': format(user_ticket['ticket']['price'], ',d'),
+                'remain_count': user_ticket['remain_count'],
+                'expired_date': user_ticket['expired_date'],
             }
             next((e for e in result if e['date'] == user_ticket['created_at']))['ticket_list'].append(ticket)
 
