@@ -3,7 +3,7 @@ import hashlib
 from datetime import datetime, timedelta
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, JSON, BigInteger
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Time
 
 from config import config, constant
 from database.database import Base
@@ -65,6 +65,8 @@ class CourseDetail(Base):
     course_id = Column(Integer, ForeignKey('course.id'), comment='')
     title = Column(String(255), comment='타이틀')
     course_date = Column(DateTime, comment='수업일')
+    start_time = Column(String(10), comment='수업 시작시간')
+    end_time = Column(String(10), comment='수업 종료시간')
     address = Column(Text, comment='연습실 주소')
     address_detail = Column(Text, comment='연습실 주소')
     created_at = Column(DateTime, default=datetime.now)

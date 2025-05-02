@@ -32,7 +32,7 @@ def get_dancer_course(session, g):
 
     courses = session.query(Course
                     ).outerjoin(User, User.id == Course.user_id,
-                    ).filter(Course.status == constant.STATUS_ACTIVE,
+                    ).filter(Course.status >= constant.STATUS_INACTIVE,
                              Course.user_id == g.id,
                     ).options(contains_eager(Course.dancer),
                     ).order_by(Course.created_at.desc()).all()

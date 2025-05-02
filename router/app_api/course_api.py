@@ -20,6 +20,8 @@ router = APIRouter(
 class PostCourseDetailModel(BaseModel):
     title: str
     course_date: str
+    start_time: str
+    end_time: str
     address: Optional[str]
     address_detail: Optional[str]
 

@@ -25,8 +25,8 @@ def get_course(session, date):
     courses = session.query(CourseDetail
                     ).outerjoin(Course,
                                 and_(CourseDetail.course_id == Course.id,
-                                     Course.status == constant.STATUS_ACTIVE)
-                    ).filter(CourseDetail.status == constant.STATUS_ACTIVE,
+                                     Course.status >= constant.STATUS_INACTIVE)
+                    ).filter(CourseDetail.status >= constant.STATUS_INACTIVE,
                              and_(CourseDetail.course_date >= before_date_filter,
                                   CourseDetail.course_date <= after_date_filter),
                     ).options(contains_eager(CourseDetail.course),
@@ -70,6 +70,8 @@ def post_course(request, session, g):
         course_detail.course_id = course.id
         course_detail.title = detail.title
         course_detail.course_date = detail.course_date
+        course_detail.start_time = detail.start_time
+        course_detail.end_time = detail.end_time
         course_detail.address = detail.address
         course_detail.address_detail = detail.address_detail
 
