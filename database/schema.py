@@ -57,6 +57,8 @@ class CourseDetailSchema(Schema):
     id = fields.Int()
     title = fields.String()
     address = fields.String()
+    start_time = fields.String()
+    end_time = fields.String()
     course_date = fields.DateTime('%m/%d')
 
     course = fields.Nested(SimpleCourseListSchema(), many=False)
