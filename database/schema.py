@@ -59,7 +59,7 @@ class CourseDetailSchema(Schema):
     address = fields.String()
     start_time = fields.String()
     end_time = fields.String()
-    course_date = fields.DateTime('%m/%d')
+    course_date = fields.DateTime('%Y-%m-%d')
 
     course = fields.Nested(SimpleCourseListSchema(), many=False)
 
@@ -75,7 +75,7 @@ class CourseListSchema(Schema):
     user_id = fields.Int()
     count = fields.Int()
     description = fields.String()
-    last_course_date = fields.DateTime('%m/%d')
+    last_course_date = fields.DateTime('%Y-%m-%d')
     is_like = fields.Method('get_is_like')
 
     dancer = fields.Nested(UserListSchema(), many=False)
@@ -107,7 +107,7 @@ class SearchCourseListSchema(Schema):
     image_url = fields.String()
     user_id = fields.Int()
     count = fields.Int()
-    last_course_date = fields.DateTime('%m/%d')
+    last_course_date = fields.DateTime('%Y-%m-%d')
 
     dancer = fields.Nested(UserListSchema(), many=False)
 
@@ -118,7 +118,7 @@ search_course_list_schema = SearchCourseListSchema(many=True)
 class SearchCourseDetailSchema(Schema):
     id = fields.Int()
     title = fields.String()
-    course_date = fields.DateTime('%m/%d')
+    course_date = fields.DateTime('%Y-%m-%d')
 
     course = fields.Nested(SearchCourseListSchema(), many=False)
 
