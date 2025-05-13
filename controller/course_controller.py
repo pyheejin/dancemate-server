@@ -117,6 +117,8 @@ def put_course_detail(course_id, request, session, g):
         course_detail.course_id = course.id
         course_detail.title = detail.title
         course_detail.course_date = detail.course_date
+        course_detail.start_time = detail.start_time
+        course_detail.end_time = detail.end_time
         course_detail.address = detail.address
         course_detail.address_detail = detail.address_detail
 
