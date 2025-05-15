@@ -15,10 +15,12 @@ router = APIRouter(
 
 
 @router.get('/pre', tags=['search'], summary='검색 전', dependencies=[Depends(get_current_user)])
-def get_search_pre(session: Session = Depends(db.session)):
+def get_search_pre(session: Session = Depends(db.session),
+                   g: User = Depends(get_current_user)):
     result_msg = '검색 전'
     try:
-        response = search_controller.get_search_pre(session=session)
+        response = search_controller.get_search_pre(session=session,
+                                                    g=g)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()

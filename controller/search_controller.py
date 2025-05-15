@@ -6,16 +6,15 @@ from database.schema import *
 from database.base_model import DefaultModel
 
 
-def get_search_pre(session):
+def get_search_pre(session, g):
     response = DefaultModel()
 
     _format = '%Y-%m-%d %H:%M:%S'
     today = datetime.strptime(datetime.now().date().strftime(_format), _format)
-    print(today)
 
     keyword_query = session.query(SearchKeyword)
 
-    latest_keyword = keyword_query.filter(SearchKeyword.user_id == 21,
+    latest_keyword = keyword_query.filter(SearchKeyword.user_id == g.id,
                                           SearchKeyword.type == 1
                                     ).order_by(SearchKeyword.created_at.desc()).all()
     recommend_keyword = keyword_query.filter(SearchKeyword.type == 99
@@ -67,6 +66,15 @@ def get_search(session, keyword, g):
                               contains_eager(Course.dancer),
                               contains_eager(Course.course_like_user),
                     ).all()
+
+    # 최근 검색어에 추가
+    if keyword != '':
+        search_keyword = SearchKeyword()
+        session.add(search_keyword)
+
+        search_keyword.type = 1
+        search_keyword.user_id = g.id,
+        search_keyword.keyword = keyword
 
     response.result_data = {
         'result_count': len(courses),

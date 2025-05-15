@@ -17,6 +17,7 @@ ERROR_PAST_SESSION_CANNOT_BE_RESERVED = 'past_session_cannot_be_reserved'
 ERROR_PAST_SESSION_CANNOT_BE_CANCELED = 'past_session_cannot_be_canceled'
 ERROR_DANCER_ONLY = 'dancer_only'
 ERROR_PAST_SESSION_CANNOT_BE_CREATED = 'past_session_cannot_be_created'
+ERROR_MY_COURSE_IS_NOT_AVAILABLE_FOR_RESERVATION = 'my_course_is_not_available_for_reservation'
 ERROR_BAD_REQUEST = 'bad_request'
 ERROR_UNAUTHORIZED = 'unauthorized'
 ERROR_TOKEN_EXPIRED = 'token_expired'
@@ -32,6 +33,7 @@ ERROR_DIC = {
     ERROR_PAST_SESSION_CANNOT_BE_CANCELED: (211, '지난 수업은 취소할 수 없습니다.'),
     ERROR_DANCER_ONLY: (212, '댄서 유저만 이용할 수 있습니다.'),
     ERROR_PAST_SESSION_CANNOT_BE_CREATED: (213, '날짜를 확인해주세요.'),
+    ERROR_MY_COURSE_IS_NOT_AVAILABLE_FOR_RESERVATION: (214, '내 수업은 예약할 수 없습니다.'),
     ERROR_BAD_REQUEST: (400, '잘못된 요청입니다'),
     ERROR_UNAUTHORIZED: (401, '로그인이 필요합니다'),
     ERROR_TOKEN_EXPIRED: (404, '토큰이 만료되었습니다.'),

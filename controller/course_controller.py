@@ -212,7 +212,12 @@ def post_course_detail_reserve(course_detail_id, request, session, g):
 
     course_detail = session.query(CourseDetail).filter(CourseDetail.id == course_detail_id).first()
     if course_detail is not None:
-        if course_detail.course_date < now:
+        if course_detail.course.user_id == g.id:
+            raise HTTPException(status_code=ERROR_DIC[ERROR_COURSE_RESERVE_EXISTS][0],
+                                detail=ERROR_COURSE_RESERVE_EXISTS)
+
+        course_date = f'{course_detail.course_date.date()} {course_detail.start_time}:00'
+        if datetime.strptime(course_date, date_format) < now:
             raise HTTPException(status_code=ERROR_DIC[ERROR_PAST_SESSION_CANNOT_BE_RESERVED][0],
                                 detail=ERROR_PAST_SESSION_CANNOT_BE_RESERVED)
 
