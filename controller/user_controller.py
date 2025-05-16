@@ -191,3 +191,29 @@ def get_user_ticket(dancer_id, session, g):
         'tickets': result,
     }
     return response
+
+
+def get_user_course(session, g):
+    response = DefaultModel()
+
+    _format = '%Y-%m-%d %H:%M:%S'
+    today = datetime.strptime(datetime.now().date().strftime(_format), _format)
+
+    courses = session.query(Course
+                    ).outerjoin(CourseDetail,
+                                and_(CourseDetail.course_id == Course.id,
+                                     CourseDetail.status == constant.STATUS_ACTIVE)
+                    ).outerjoin(UserCourse,
+                                and_(UserCourse.course_detail_id == CourseDetail.id,
+                                     UserCourse.status == constant.STATUS_ACTIVE)
+                    ).filter(UserCourse.user_id == g.id
+                    ).options(contains_eager(Course.course_detail),
+                              contains_eager(Course.course_detail
+                            ).contains_eager(CourseDetail.user_course_detail),
+                    ).order_by(CourseDetail.course_date.desc()).all()
+
+    response.result_data = {
+        'result_count': len(courses),
+        'courses': course_list_schema.dump(courses),
+    }
+    return response
