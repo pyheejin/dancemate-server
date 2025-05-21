@@ -27,18 +27,18 @@ def get_dancer_detail_ticket(dancer_id, session):
     return response
 
 
-def get_dancer_course(session, g):
+def get_dancer_lesson(session, g):
     response = DefaultModel()
 
-    courses = session.query(Course
-                    ).outerjoin(User, User.id == Course.user_id,
-                    ).filter(Course.status >= constant.STATUS_INACTIVE,
-                             Course.user_id == g.id,
-                    ).options(contains_eager(Course.dancer),
-                    ).order_by(Course.created_at.desc()).all()
+    lessons = session.query(Lesson
+                    ).outerjoin(User, User.id == Lesson.user_id,
+                    ).filter(Lesson.status >= constant.STATUS_INACTIVE,
+                             Lesson.user_id == g.id,
+                    ).options(contains_eager(Lesson.dancer),
+                    ).order_by(Lesson.created_at.desc()).all()
 
     response.result_data = {
-        'result_count': len(courses),
-        'courses': course_list_schema.dump(courses),
+        'result_count': len(lessons),
+        'courses': lessons_schema.dump(lessons),
     }
     return response

@@ -47,12 +47,12 @@ def get_dancer_detail_ticket(dancer_id: int,
     return response
 
 
-@router.get('/course', tags=['dancer'], summary='댄서 수업 목록', dependencies=[Depends(get_current_user)])
-def get_dancer_course(session: Session = Depends(db.session),
+@router.get('/lesson', tags=['dancer'], summary='댄서 수업 목록', dependencies=[Depends(get_current_user)])
+def get_dancer_lesson(session: Session = Depends(db.session),
                       g: User = Depends(get_current_user)):
     result_msg = '댄서 수업 목록'
     try:
-        response = dancer_controller.get_dancer_course(session=session,
+        response = dancer_controller.get_dancer_lesson(session=session,
                                                        g=g)
     except HTTPException as e:
         print(f'error: {e.detail}')

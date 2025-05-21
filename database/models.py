@@ -29,17 +29,18 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
-    dancer_course = relationship('Course', back_populates='dancer')
+    dancer_lesson = relationship('Lesson', back_populates='dancer')
     search_keyword = relationship('SearchKeyword', back_populates='user')
     reserve_course = relationship('UserCourse', back_populates='reserve')
     mate_ticket = relationship('UserTicket', back_populates='mate')
     dancer_ticket = relationship('Ticket', back_populates='dancer')
     user_course_like = relationship('UserCourseLike', back_populates='user')
     payment = relationship('Payment', back_populates='user')
+    review = relationship('Review', back_populates='user')
 
 
-class Course(Base):
-    __tablename__ = 'course'
+class Lesson(Base):
+    __tablename__ = 'lesson'
 
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
@@ -52,17 +53,17 @@ class Course(Base):
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
-    dancer = relationship('User', back_populates='dancer_course')
-    course_detail = relationship('CourseDetail', back_populates='course')
-    course_like_user = relationship('UserCourseLike', back_populates='course')
+    dancer = relationship('User', back_populates='dancer_lesson')
+    course = relationship('Course', back_populates='lesson')
+    review = relationship('Review', back_populates='lesson')
 
 
-class CourseDetail(Base):
-    __tablename__ = 'course_detail'
+class Course(Base):
+    __tablename__ = 'course'
 
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
-    course_id = Column(Integer, ForeignKey('course.id'), comment='')
+    lesson_id = Column(Integer, ForeignKey('lesson.id'), comment='')
     title = Column(String(255), comment='타이틀')
     course_date = Column(DateTime, comment='수업일')
     start_time = Column(String(10), comment='수업 시작시간')
@@ -72,18 +73,18 @@ class CourseDetail(Base):
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
-    course = relationship('Course', back_populates='course_detail')
-    user_course_detail = relationship('UserCourse', back_populates='course_detail')
-    user_ticket_course_detail = relationship('UserTicketCourseDetail', back_populates='course_detail')
+    lesson = relationship('Lesson', back_populates='course')
+    user_course = relationship('UserCourse', back_populates='course')
+    like_user = relationship('UserCourseLike', back_populates='course')
 
 
-class CourseImage(Base):
-    __tablename__ = 'course_image'
+class LessonImage(Base):
+    __tablename__ = 'lesson_image'
 
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
     order = Column(Integer, comment='순서')
-    course_id = Column(Integer, comment='')
+    lesson_id = Column(Integer, comment='')
     image_url = Column(Text, comment='이미지 url')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
@@ -124,20 +125,6 @@ class UserTicket(Base):
     payment = relationship('Payment', back_populates='user_ticket')
 
 
-class UserTicketCourseDetail(Base):
-    __tablename__ = 'user_ticket_course_detail'
-
-    id = Column(Integer, primary_key=True, index=True)
-    status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
-    user_id = Column(Integer, comment='')
-    user_ticket_id = Column(Integer, comment='')
-    course_detail_id = Column(Integer, ForeignKey('course_detail.id'), comment='')
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
-
-    course_detail = relationship('CourseDetail', back_populates='user_ticket_course_detail')
-
-
 class Payment(Base):
     __tablename__ = 'payment'
 
@@ -162,7 +149,7 @@ class Qna(Base):
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
     is_reply = Column(Integer, comment='답변여부')
     user_id = Column(Integer, comment='')
-    course_id = Column(Integer, comment='')
+    lesson_id = Column(Integer, comment='')
     question = Column(Text, comment='질문')
     answer = Column(Text, comment='답변')
     created_at = Column(DateTime, default=datetime.now)
@@ -176,12 +163,15 @@ class Review(Base):
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
     is_best = Column(Integer, comment='1:베스트 리뷰')
     satisfaction = Column(Integer, comment='만족도')
-    user_id = Column(Integer, comment='')
-    course_id = Column(Integer, comment='')
+    user_id = Column(Integer, ForeignKey('user.id'), comment='')
+    lesson_id = Column(Integer, ForeignKey('lesson.id'), comment='')
     title = Column(Text, comment='제목')
     description = Column(Text, comment='내용')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    user = relationship('User', back_populates='review')
+    lesson = relationship('Lesson', back_populates='review')
 
 
 class RecommendUser(Base):
@@ -203,12 +193,12 @@ class UserCourse(Base):
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
     user_id = Column(Integer, ForeignKey('user.id'), comment='')
     user_ticket_id = Column(Integer, comment='')
-    course_detail_id = Column(Integer, ForeignKey('course_detail.id'), comment='')
+    course_id = Column(Integer, ForeignKey('course.id'), comment='')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     reserve = relationship('User', back_populates='reserve_course')
-    course_detail = relationship('CourseDetail', back_populates='user_course_detail')
+    course = relationship('Course', back_populates='user_course')
 
 
 class UserCourseLike(Base):
@@ -223,8 +213,7 @@ class UserCourseLike(Base):
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     user = relationship('User', back_populates='user_course_like')
-    course = relationship('Course', back_populates='course_like_user')
-
+    course = relationship('Course', back_populates='like_user')
 
 
 class SearchKeyword(Base):

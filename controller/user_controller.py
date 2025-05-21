@@ -18,13 +18,13 @@ def get_user_profile(session, g):
     user = session.query(User).outerjoin(UserCourse,
                                          and_(UserCourse.user_id == User.id,
                                               UserCourse.status >= constant.STATUS_INACTIVE)
-                            ).outerjoin(CourseDetail,
-                                        and_(CourseDetail.id == UserCourse.course_detail_id,
-                                             CourseDetail.status == constant.STATUS_ACTIVE,
-                                             CourseDetail.course_date >= today)
                             ).outerjoin(Course,
-                                        and_(CourseDetail.course_id == Course.id,
-                                             Course.status == constant.STATUS_ACTIVE)
+                                        and_(Course.id == UserCourse.course_id,
+                                             Course.status == constant.STATUS_ACTIVE,
+                                             Course.course_date >= today)
+                            ).outerjoin(Lesson,
+                                        and_(Course.lesson_id == Lesson.id,
+                                             Lesson.status == constant.STATUS_ACTIVE)
                             ).outerjoin(UserTicket,
                                         and_(UserTicket.user_id == User.id,
                                              UserTicket.status >= constant.STATUS_INACTIVE,
@@ -33,8 +33,11 @@ def get_user_profile(session, g):
                             ).filter(User.id == g.id,
                             ).options(contains_eager(User.mate_ticket),
                                       contains_eager(User.reserve_course),
-                                      contains_eager(User.reserve_course).contains_eager(UserCourse.course_detail),
-                                      contains_eager(User.reserve_course).contains_eager(UserCourse.course_detail),
+                                      contains_eager(User.reserve_course
+                                                     ).contains_eager(UserCourse.course),
+                                      contains_eager(User.reserve_course
+                                                     ).contains_eager(UserCourse.course
+                                                    ).contains_eager(Course.lesson),
                             ).all()
 
     response.result_data = {
@@ -56,12 +59,12 @@ def get_user_detail(session, g, user_id):
     user = session.query(User).outerjoin(UserCourse,
                                          and_(UserCourse.user_id == User.id,
                                               UserCourse.status >= constant.STATUS_INACTIVE)
-                            ).outerjoin(CourseDetail,
-                                        and_(CourseDetail.id == UserCourse.course_detail_id,
-                                             CourseDetail.status == constant.STATUS_ACTIVE)
                             ).outerjoin(Course,
-                                        and_(CourseDetail.course_id == Course.id,
+                                        and_(Course.id == UserCourse.course_id,
                                              Course.status == constant.STATUS_ACTIVE)
+                            ).outerjoin(Lesson,
+                                        and_(Course.lesson_id == Lesson.id,
+                                             Lesson.status == constant.STATUS_ACTIVE)
                             ).outerjoin(UserTicket,
                                         and_(UserTicket.user_id == User.id,
                                              UserTicket.status >= constant.STATUS_INACTIVE)
@@ -70,9 +73,10 @@ def get_user_detail(session, g, user_id):
                             ).options(contains_eager(User.mate_ticket),
                                       contains_eager(User.reserve_course),
                                       contains_eager(User.reserve_course
-                                    ).contains_eager(UserCourse.course_detail),
+                                                     ).contains_eager(UserCourse.course),
                                       contains_eager(User.reserve_course
-                                    ).contains_eager(UserCourse.course_detail),
+                                                     ).contains_eager(UserCourse.course
+                                                    ).contains_eager(Course.lesson),
                             ).all()
 
     response.result_data = {
@@ -199,21 +203,21 @@ def get_user_course(session, g):
     _format = '%Y-%m-%d %H:%M:%S'
     today = datetime.strptime(datetime.now().date().strftime(_format), _format)
 
-    courses = session.query(Course
-                    ).outerjoin(CourseDetail,
-                                and_(CourseDetail.course_id == Course.id,
-                                     CourseDetail.status == constant.STATUS_ACTIVE)
+    courses = session.query(Lesson
+                    ).outerjoin(Course,
+                                and_(Course.lesson_id == Lesson.id,
+                                     Course.status == constant.STATUS_ACTIVE)
                     ).outerjoin(UserCourse,
-                                and_(UserCourse.course_detail_id == CourseDetail.id,
+                                and_(UserCourse.course_id == Course.id,
                                      UserCourse.status == constant.STATUS_ACTIVE)
                     ).filter(UserCourse.user_id == g.id
-                    ).options(contains_eager(Course.course_detail),
-                              contains_eager(Course.course_detail
-                            ).contains_eager(CourseDetail.user_course_detail),
-                    ).order_by(CourseDetail.course_date.desc()).all()
+                    ).options(contains_eager(Lesson.course),
+                              contains_eager(Lesson.course
+                            ).contains_eager(Course.user_course),
+                    ).order_by(Course.course_date.desc()).all()
 
     response.result_data = {
         'result_count': len(courses),
-        'courses': course_list_schema.dump(courses),
+        'courses': lessons_schema.dump(courses),
     }
     return response
