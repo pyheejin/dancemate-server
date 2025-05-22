@@ -15,15 +15,19 @@ def get_search_pre(session, g):
     keyword_query = session.query(SearchKeyword)
 
     latest_keyword = keyword_query.filter(SearchKeyword.user_id == g.id,
-                                          SearchKeyword.type == 1
+                                          SearchKeyword.type == 1,
+                                          SearchKeyword.keyword != '',
+                                          SearchKeyword.status == constant.STATUS_ACTIVE,
                                     ).order_by(SearchKeyword.created_at.desc()).all()
-    recommend_keyword = keyword_query.filter(SearchKeyword.type == 99
+    recommend_keyword = keyword_query.filter(SearchKeyword.type == 99,
+                                             SearchKeyword.keyword != '',
+                                             SearchKeyword.status == constant.STATUS_ACTIVE,
                                     ).order_by(SearchKeyword.created_at.desc()).all()
 
     recommend_courses = session.query(Lesson
                             ).outerjoin(Course,
                                         and_(Course.lesson_id == Lesson.id,
-                                             # CourseDetail.course_date >= today,
+                                             # Course.course_date >= today,
                                              Course.status == constant.STATUS_ACTIVE)
                             # ).outerjoin(RecommendUser,
                             #             and_(RecommendUser.user_id == Lesson.user_id,

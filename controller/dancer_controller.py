@@ -39,6 +39,6 @@ def get_dancer_lesson(session, g):
 
     response.result_data = {
         'result_count': len(lessons),
-        'courses': lessons_schema.dump(lessons),
+        'lessons': lessons_schema.dump(lessons),
     }
     return response

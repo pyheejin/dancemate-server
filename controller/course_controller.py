@@ -38,13 +38,19 @@ def get_course_detail_reserve(session, course_id, g):
     date_format = '%Y-%m-%d %H:%M:%S'
     today = datetime.strptime(datetime.now().date().strftime(date_format), date_format)
 
-    courses = session.query(Lesson
+    lessons = session.query(Lesson
                     ).outerjoin(Course,
                                 and_(Course.lesson_id == Lesson.id,
                                      Course.status == constant.STATUS_ACTIVE)
                     ).filter(Course.id == course_id
                     ).options(contains_eager(Lesson.course),
                     ).all()
+
+    if len(lessons) == 0:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DATA_NOT_EXIST)
+
+    lesson = lessons[0]
 
     tickets = session.query(UserTicket
                     ).outerjoin(Ticket, UserTicket.ticket_id == Ticket.id,
@@ -54,11 +60,11 @@ def get_course_detail_reserve(session, course_id, g):
                     ).filter(UserTicket.user_id == g.id,
                              UserTicket.status >= constant.STATUS_INACTIVE,
                              UserTicket.expired_date >= today,
-                             Ticket.user_id == courses[0].user_id
+                             Ticket.user_id == lesson.user_id
                     ).all()
 
     response.result_data = {
-        'course': lesson_schema.dump(courses[0]),
+        'lesson': lesson_schema.dump(lesson),
         'tickets': user_tickets_schema.dump(tickets),
     }
     return response
@@ -80,7 +86,7 @@ def post_course_detail_reserve(course_id, request, session, g):
 
     course_detail = session.query(Course).filter(Course.id == course_id).first()
     if course_detail is not None:
-        if course_detail.course.user_id == g.id:
+        if course_detail.lesson.user_id == g.id:
             raise HTTPException(status_code=ERROR_DIC[ERROR_COURSE_RESERVE_EXISTS][0],
                                 detail=ERROR_COURSE_RESERVE_EXISTS)
 
@@ -222,7 +228,8 @@ def post_course_detail_exists(course_id, session, g):
                                 detail=ERROR_PAST_SESSION_CANNOT_BE_RESERVED)
 
     # 내가 만든 수업일 경우
-    my_lesson = session.query(Lesson).filter(Lesson.user_id == g.id).first()
+    my_lesson = session.query(Lesson).filter(Lesson.user_id == g.id,
+                                             Lesson.id == course_detail.lesson_id).first()
     if my_lesson is not None:
         raise HTTPException(status_code=ERROR_DIC[ERROR_MY_COURSE_IS_NOT_AVAILABLE_FOR_RESERVATION][0],
                             detail=ERROR_MY_COURSE_IS_NOT_AVAILABLE_FOR_RESERVATION)

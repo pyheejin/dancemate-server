@@ -203,7 +203,7 @@ def get_user_course(session, g):
     _format = '%Y-%m-%d %H:%M:%S'
     today = datetime.strptime(datetime.now().date().strftime(_format), _format)
 
-    courses = session.query(Lesson
+    lessons = session.query(Lesson
                     ).outerjoin(Course,
                                 and_(Course.lesson_id == Lesson.id,
                                      Course.status == constant.STATUS_ACTIVE)
@@ -217,7 +217,7 @@ def get_user_course(session, g):
                     ).order_by(Course.course_date.desc()).all()
 
     response.result_data = {
-        'result_count': len(courses),
-        'courses': lessons_schema.dump(courses),
+        'result_count': len(lessons),
+        'lessons': lessons_schema.dump(lessons),
     }
     return response
