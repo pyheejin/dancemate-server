@@ -166,3 +166,36 @@ def get_lesson_detail(session, lesson_id, g):
         'lesson': lesson_schema.dump(lesson[0]),
     }
     return response
+
+
+def post_lesson_detail_review(lesson_id, request, session, g):
+    response = DefaultModel()
+
+    lesson = session.query(Lesson
+                    ).outerjoin(Course,
+                                and_(Course.lesson_id == Lesson.id,
+                                     Course.status == constant.STATUS_ACTIVE)
+                    ).outerjoin(UserCourse,
+                                and_(UserCourse.course_id == Course.id,
+                                     UserCourse.user_id == g.id,
+                                     UserCourse.status == constant.STATUS_ACTIVE)
+                    ).filter(Lesson.status >= constant.STATUS_INACTIVE,
+                             Lesson.id == lesson_id,
+                             UserCourse.course_id == request.course_id
+                    ).options(contains_eager(Lesson.course),
+                              contains_eager(Lesson.course
+                            ).contains_eager(Course.user_course),
+                    ).all()
+    if len(lesson) == 0:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DATA_NOT_EXIST)
+
+    review = Review()
+    session.add(review)
+
+    review.satisfaction = request.rate
+    review.user_id = g.id
+    review.lesson_id = lesson_id
+    review.user_course_id = request.user_course_id
+    review.description = request.description
+    return response

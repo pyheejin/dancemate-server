@@ -3,7 +3,7 @@ import hashlib
 from datetime import datetime, timedelta
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Time
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Double
 
 from config import config, constant
 from database.database import Base
@@ -161,10 +161,11 @@ class Review(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
-    is_best = Column(Integer, comment='1:베스트 리뷰')
-    satisfaction = Column(Integer, comment='만족도')
+    is_best = Column(Integer, default=0, comment='1:베스트 리뷰')
+    satisfaction = Column(Double, comment='만족도')
     user_id = Column(Integer, ForeignKey('user.id'), comment='')
     lesson_id = Column(Integer, ForeignKey('lesson.id'), comment='')
+    user_course_id = Column(Integer, ForeignKey('user_course.id'), comment='')
     title = Column(Text, comment='제목')
     description = Column(Text, comment='내용')
     created_at = Column(DateTime, default=datetime.now)
@@ -172,6 +173,7 @@ class Review(Base):
 
     user = relationship('User', back_populates='review')
     lesson = relationship('Lesson', back_populates='review')
+    user_course = relationship('UserCourse', back_populates='review')
 
 
 class RecommendUser(Base):
@@ -199,6 +201,7 @@ class UserCourse(Base):
 
     reserve = relationship('User', back_populates='reserve_course')
     course = relationship('Course', back_populates='user_course')
+    review = relationship('Review', back_populates='user_course')
 
 
 class UserCourseLike(Base):

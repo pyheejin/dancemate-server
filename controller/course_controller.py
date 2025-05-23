@@ -234,28 +234,3 @@ def post_course_detail_exists(course_id, session, g):
         raise HTTPException(status_code=ERROR_DIC[ERROR_MY_COURSE_IS_NOT_AVAILABLE_FOR_RESERVATION][0],
                             detail=ERROR_MY_COURSE_IS_NOT_AVAILABLE_FOR_RESERVATION)
     return response
-
-
-def post_course_detail_review(course_id, request, session, g):
-    response = DefaultModel()
-
-    course_detail = session.query(Course
-                            ).outerjoin(Lesson,
-                                        and_(Course.lesson_id == Lesson.id,
-                                             Lesson.status >= constant.STATUS_INACTIVE)
-                            ).filter(Course.status >= constant.STATUS_INACTIVE,
-                                     Course.id == course_id,
-                            ).options(contains_eager(Course.lesson),
-                            ).first()
-
-    if course_detail is None:
-        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
-                            detail=ERROR_DATA_NOT_EXIST)
-
-    review = Review()
-    session.add(review)
-
-    review.satisfaction = request.rate
-    review.user_id = g.id
-    review.course_id = course_detail.course_id
-    return response

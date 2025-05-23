@@ -33,6 +33,13 @@ class PostLessonModel(BaseModel):
     detail_list: List[PostCourseDetailModel]
 
 
+class PostLessonDetailReviewModel(BaseModel):
+    course_id: int
+    user_course_id: int
+    rate: float
+    description: str
+
+
 @router.get('', tags=['lesson'], summary='수업', dependencies=[Depends(get_current_user)])
 def get_lesson(session: Session = Depends(db.session),
                date: Optional[str] = None):
@@ -138,6 +145,40 @@ def get_lesson_detail(lesson_id: int,
         response = lesson_controller.get_lesson_detail(lesson_id=lesson_id,
                                                        session=session,
                                                        g=g)
+    except HTTPException as e:
+        print(f'error: {e.detail}')
+        session.rollback()
+        response = None
+        response = error_response(response, e.detail, e.status_code, result_msg)
+    except Exception as e:
+        print(e)
+        session.rollback()
+
+        response = DefaultModel()
+        response.result_msg = f'{result_msg} 실패'
+        response.result_code = 210
+    else:
+        session.commit()
+        if response is None:
+            response = DefaultModel()
+        if response.result_msg is not None:
+            response.result_msg = f'{result_msg} 성공'
+    finally:
+        session.close()
+    return response
+
+
+@router.post('/{lesson_id}/review', tags=['lesson'], summary='리뷰 작성', dependencies=[Depends(get_current_user)])
+def post_lesson_detail_review(lesson_id: int,
+                              request: PostLessonDetailReviewModel,
+                              session: Session = Depends(db.session),
+                              g: User = Depends(get_current_user)):
+    result_msg = '리뷰 작성'
+    try:
+        response = lesson_controller.post_lesson_detail_review(lesson_id=lesson_id,
+                                                               request=request,
+                                                               session=session,
+                                                               g=g)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()

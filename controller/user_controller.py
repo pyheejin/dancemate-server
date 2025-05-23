@@ -203,21 +203,25 @@ def get_user_course(session, g):
     _format = '%Y-%m-%d %H:%M:%S'
     today = datetime.strptime(datetime.now().date().strftime(_format), _format)
 
-    lessons = session.query(Lesson
-                    ).outerjoin(Course,
+    courses = session.query(Course
+                    ).outerjoin(Lesson,
                                 and_(Course.lesson_id == Lesson.id,
-                                     Course.status == constant.STATUS_ACTIVE)
+                                     Lesson.status == constant.STATUS_ACTIVE)
                     ).outerjoin(UserCourse,
                                 and_(UserCourse.course_id == Course.id,
                                      UserCourse.status == constant.STATUS_ACTIVE)
+                    ).outerjoin(Review,
+                                and_(Review.user_course_id == UserCourse.id,
+                                     Review.status == constant.STATUS_ACTIVE)
                     ).filter(UserCourse.user_id == g.id
-                    ).options(contains_eager(Lesson.course),
-                              contains_eager(Lesson.course
-                            ).contains_eager(Course.user_course),
-                    ).order_by(Course.course_date.desc()).all()
+                    ).options(contains_eager(Course.lesson),
+                              contains_eager(Course.user_course),
+                              contains_eager(Course.user_course).contains_eager(UserCourse.review),
+                    ).order_by(Course.course_date.desc()
+                    ).all()
 
     response.result_data = {
-        'result_count': len(lessons),
-        'lessons': lessons_schema.dump(lessons),
+        'result_count': len(courses),
+        'courses': courses_schema.dump(courses),
     }
     return response
