@@ -45,13 +45,40 @@ class SimpleLessonListSchema(Schema):
     dancer = fields.Nested(UserListSchema(), many=False)
 
 
+class SimpleCourseSchema(Schema):
+    id = fields.Int()
+    title = fields.String()
+    address = fields.String()
+    start_time = fields.String()
+    end_time = fields.String()
+    course_date = fields.DateTime('%Y-%m-%d')
+
+
+class SimpleUserCourseSchema(Schema):
+    id = fields.Int()
+
+    course = fields.Nested(SimpleCourseSchema(), many=False)
+
+
 class ReviewSchema(Schema):
     id = fields.Int()
     satisfaction = fields.Int()
     description = fields.String()
 
 
-class UserCourseSchema(Schema):
+class ReviewDetailSchema(Schema):
+    id = fields.Int()
+    satisfaction = fields.Float()
+    description = fields.String()
+
+    lesson = fields.Nested(SimpleLessonListSchema(), many=False)
+    user_course = fields.Nested(SimpleUserCourseSchema(), many=False)
+
+
+review_schema = ReviewDetailSchema(many=False)
+
+
+class UserCourseReviewSchema(Schema):
     id = fields.Int()
 
     review = fields.Nested(ReviewSchema(), many=True)
@@ -67,7 +94,7 @@ class CourseSchema(Schema):
     is_like = fields.Method('get_is_like')
 
     lesson = fields.Nested(SimpleLessonListSchema(), many=False)
-    user_course = fields.Nested(UserCourseSchema(), many=True)
+    user_course = fields.Nested(UserCourseReviewSchema(), many=True)
 
     @classmethod
     def get_is_like(cls, obj):

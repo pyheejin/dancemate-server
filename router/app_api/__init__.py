@@ -1,7 +1,8 @@
 from fastapi import APIRouter
 
 from router.app_api import (user_api, home_api, search_api, lesson_api,
-                            payment_api, dancer_api, ticket_api, course_api)
+                            payment_api, dancer_api, ticket_api, course_api,
+                            review_api)
 
 
 routers = APIRouter(
@@ -17,6 +18,7 @@ routers.include_router(payment_api.router)
 routers.include_router(dancer_api.router)
 routers.include_router(ticket_api.router)
 routers.include_router(course_api.router)
+routers.include_router(review_api.router)
 
 
 from fastapi.security import OAuth2PasswordBearer
