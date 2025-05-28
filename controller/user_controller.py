@@ -117,6 +117,15 @@ def post_user_join(session, request):
     user.access_token = jwt.create_access_token(user_payload)
     user.refresh_token = jwt.create_refresh_token(user_payload)
 
+    # 알림
+    notification = Notification()
+    session.add(notification)
+
+    notification.user_id = user.id
+    notification.lesson = constant.STATUS_ACTIVE
+    notification.ticket = constant.STATUS_ACTIVE
+    notification.community = constant.STATUS_ACTIVE
+
     response.result_data = {
         'user': user_payload,
     }

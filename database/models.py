@@ -37,6 +37,7 @@ class User(Base):
     user_course_like = relationship('UserCourseLike', back_populates='user')
     payment = relationship('Payment', back_populates='user')
     review = relationship('Review', back_populates='user')
+    notification = relationship('Notification', back_populates='user')
 
 
 class Lesson(Base):
@@ -231,3 +232,18 @@ class SearchKeyword(Base):
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     user = relationship('User', back_populates='search_keyword')
+
+
+class Notification(Base):
+    __tablename__ = 'notification'
+
+    id = Column(Integer, primary_key=True, index=True)
+    status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
+    user_id = Column(Integer, ForeignKey('user.id'), comment='')
+    lesson = Column(Integer, default=1, comment='수업 관련 알림(1:활성화, 0:비활성화)')
+    ticket = Column(Integer, default=1, comment='티켓 관련 알림(1:활성화, 0:비활성화)')
+    community = Column(Integer, default=1, comment='커뮤니티 관련 알림(1:활성화, 0:비활성화)')
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    user = relationship('User', back_populates='notification')

@@ -226,3 +226,34 @@ class PaymentDetailSchema(Schema):
 
 
 payment_detail_schema = PaymentDetailSchema(many=False)
+
+
+class NotificationSchema(Schema):
+    id = fields.Int()
+    lesson = fields.Method('get_lesson')
+    ticket = fields.Method('get_ticket')
+    community = fields.Method('get_community')
+
+    @classmethod
+    def get_lesson(cls, obj):
+        if obj.lesson == 1:
+            return True
+        else:
+            return False
+
+    @classmethod
+    def get_ticket(cls, obj):
+        if obj.ticket == 1:
+            return True
+        else:
+            return False
+
+    @classmethod
+    def get_community(cls, obj):
+        if obj.community == 1:
+            return True
+        else:
+            return False
+
+
+notification_schema = NotificationSchema(many=False)
