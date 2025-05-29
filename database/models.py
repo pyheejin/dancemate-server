@@ -38,6 +38,9 @@ class User(Base):
     payment = relationship('Payment', back_populates='user')
     review = relationship('Review', back_populates='user')
     notification = relationship('Notification', back_populates='user')
+    chat_room = relationship('ChatRoom', back_populates='user')
+    chat = relationship('Chat', back_populates='user')
+    chat_room_user = relationship('ChatRoomUser', back_populates='user')
 
 
 class Lesson(Base):
@@ -57,6 +60,7 @@ class Lesson(Base):
     dancer = relationship('User', back_populates='dancer_lesson')
     course = relationship('Course', back_populates='lesson')
     review = relationship('Review', back_populates='lesson')
+    chat_room = relationship('ChatRoom', back_populates='lesson')
 
 
 class Course(Base):
@@ -148,7 +152,7 @@ class Qna(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
-    is_reply = Column(Integer, comment='답변여부')
+    is_reply = Column(Integer, default=0, comment='답변여부')
     user_id = Column(Integer, comment='')
     lesson_id = Column(Integer, comment='')
     question = Column(Text, comment='질문')
@@ -247,3 +251,48 @@ class Notification(Base):
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     user = relationship('User', back_populates='notification')
+
+
+class ChatRoom(Base):
+    __tablename__ = 'chat_room'
+
+    id = Column(Integer, primary_key=True, index=True)
+    status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
+    user_id = Column(Integer, ForeignKey('user.id'), comment='')
+    lesson_id = Column(Integer, ForeignKey('lesson.id'), comment='')
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    user = relationship('User', back_populates='chat_room')
+    lesson = relationship('Lesson', back_populates='chat_room')
+    chat = relationship('Chat', back_populates='room')
+    chat_room_user = relationship('ChatRoomUser', back_populates='room')
+
+
+class Chat(Base):
+    __tablename__ = 'chat'
+
+    id = Column(Integer, primary_key=True, index=True)
+    status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
+    chat_room_id = Column(Integer, ForeignKey('chat_room.id'), comment='')
+    user_id = Column(Integer, ForeignKey('user.id'), comment='')
+    message = Column(String(255), comment='메시지')
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    user = relationship('User', back_populates='chat')
+    room = relationship('ChatRoom', back_populates='chat')
+
+
+class ChatRoomUser(Base):
+    __tablename__ = 'chat_room_user'
+
+    id = Column(Integer, primary_key=True, index=True)
+    status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
+    chat_room_id = Column(Integer, ForeignKey('chat_room.id'), comment='')
+    user_id = Column(Integer, ForeignKey('user.id'), comment='')
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    user = relationship('User', back_populates='chat_room_user')
+    room = relationship('ChatRoom', back_populates='chat_room_user')

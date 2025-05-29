@@ -106,6 +106,18 @@ def post_course_detail_reserve(course_id, request, session, g):
                         ).filter(UserTicket.id == request.user_ticket_id
                         ).first()
     user_ticket.remain_count -= 1
+
+    # 수업 단톡방 초대
+    room = session.query(ChatRoom).filter(ChatRoom.lesson_id == course_detail.lesson.id).first()
+    if room is not None:
+        room_user_exists = session.query(ChatRoomUser).filter(ChatRoomUser.chat_room_id == room.id,
+                                         ChatRoomUser.user_id == g.id).first()
+        if room_user_exists is None:
+            room_user = ChatRoomUser()
+            session.add(room_user)
+
+            room_user.chat_room_id = room.id
+            room_user.user_id = g.id
     return response
 
 

@@ -78,6 +78,20 @@ def post_lesson(request, session, g):
     lesson.count = len(request.detail_list)
     lesson.last_course_date = request.detail_list[-1].course_date
 
+    # 수업 개설시 단톡방 자동 생성
+    chat_room = ChatRoom()
+    session.add(chat_room)
+
+    chat_room.user_id = g.id
+    chat_room.lesson_id = lesson.id
+    session.flush()
+
+    chat_room_user = ChatRoomUser()
+    session.add(chat_room_user)
+
+    chat_room_user.chat_room_id = chat_room.id
+    chat_room_user.user_id = g.id
+
     response.result_data = {
         'lesson_id': lesson.id
     }

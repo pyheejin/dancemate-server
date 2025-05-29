@@ -1,3 +1,4 @@
+from datetime import datetime
 from marshmallow import Schema, fields
 
 
@@ -257,3 +258,70 @@ class NotificationSchema(Schema):
 
 
 notification_schema = NotificationSchema(many=False)
+
+
+class QnaSchema(Schema):
+    id = fields.Int()
+    status = fields.Int()
+    user_id = fields.Int()
+    is_reply = fields.Int()
+    question = fields.String()
+    answer = fields.String()
+    created_at = fields.DateTime('%Y-%m-%d %H:%M:%S')
+
+
+qnas_schema = QnaSchema(many=True)
+qna_schema = QnaSchema(many=False)
+
+
+class ChatRoomSchema(Schema):
+    id = fields.Int()
+    status = fields.Int()
+    user_id = fields.Int()
+    lesson_id = fields.Int()
+    created_at = fields.DateTime('%Y-%m-%d %H:%M:%S')
+    last_chat = fields.Method('get_last_chat')
+    last_chat_time = fields.Method('get_last_chat_time')
+
+    lesson = fields.Nested(SimpleLessonListSchema(), many=False)
+
+    @classmethod
+    def get_last_chat(cls, obj):
+        if obj.chat is not None:
+            return obj.chat[0].message
+        else:
+            return None
+
+    @classmethod
+    def get_last_chat_time(cls, obj):
+        if obj.chat is not None:
+            if datetime.today().date() <= obj.chat[0].created_at.date():
+                return obj.chat[0].created_at.strftime('%H:%M')
+            else:
+                return obj.chat[0].created_at.strftime('%Y-%m-%d')
+        else:
+            return None
+
+
+chat_rooms_schema = ChatRoomSchema(many=True)
+
+
+class ChatSchema(Schema):
+    id = fields.Int()
+    status = fields.Int()
+    user_id = fields.Int()
+    message = fields.String()
+    created_at = fields.DateTime('%Y-%m-%d %H:%M')
+
+
+class ChatRoomDetailSchema(Schema):
+    id = fields.Int()
+    status = fields.Int()
+    user_id = fields.Int()
+    message = fields.String()
+    created_at = fields.DateTime('%Y-%m-%d %H:%M:%S')
+
+    chat = fields.Nested(ChatSchema(), many=True)
+
+
+chat_room_schema = ChatRoomDetailSchema(many=False)
