@@ -87,7 +87,7 @@ def put_chat_room_detail(chat_room_id, request, session):
     return response
 
 
-def get_chat_room_detail(session, chat_room_id):
+def get_chat_room_detail(session, chat_room_id, g):
     response = DefaultModel()
 
     chat_room = session.query(ChatRoom
@@ -117,8 +117,32 @@ def get_chat_room_detail(session, chat_room_id):
 
     chat_room = chat_room[0]
 
+    result = []
+    for data in chat_room_schema.dump(chat_room)['chat']:
+        if not next((e for e in result if e['date'] == data['created_at'].split(' ')[0]), None):
+            result.append({
+                'date': data['created_at'].split(' ')[0],
+                'chat_list': [],
+            })
+
+    for data in chat_room_schema.dump(chat_room)['chat']:
+        if next((e for e in result if e['date'] == data['created_at'].split(' ')[0]), None):
+            user = session.query(User).filter(User.id == data['user_id']).first()
+            if user is not None:
+                chat = {
+                    'created_at': data['created_at'],
+                    'id': data['id'],
+                    'message': data['message'],
+                    'status': data['status'],
+                    'login_user_id': g.id,
+                    'user': user_schema.dump(user),
+                }
+                next((e for e in result if e['date'] == data['created_at'].split(' ')[0]))['chat_list'].append(chat)
+
     response.result_data = {
-        'chat_room': chat_room_schema.dump(chat_room),
+        'chat_room': result,
+        'chat_room_user_count': len(chat_room.chat_room_user),
+        'lesson': simple_lesson_schema.dump(chat_room.lesson),
     }
     return response
 

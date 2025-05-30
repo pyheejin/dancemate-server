@@ -153,9 +153,9 @@ def get_lesson_detail(session, lesson_id, g):
 
     filter_list = []
     lesson = session.query(Lesson).filter(Lesson.user_id == g.id).first()
-    if lesson is None:
-        if g.type == constant.USER_TYPE_MATE:
-            filter_list.append(Course.course_date >= now)
+    # if lesson is None:
+    #     if g.type == constant.USER_TYPE_MATE:
+    #         filter_list.append(Course.course_date >= now)
 
     lesson = session.query(Lesson
                     ).outerjoin(Course,

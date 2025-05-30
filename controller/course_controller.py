@@ -84,19 +84,34 @@ def post_course_detail_reserve(course_id, request, session, g):
     date_format = '%Y-%m-%d %H:%M:%S'
     now = datetime.strptime(datetime.now().strftime(date_format), date_format)
 
-    course_detail = session.query(Course).filter(Course.id == course_id).first()
-    if course_detail is not None:
-        if course_detail.lesson.user_id == g.id:
+    course = session.query(Course).filter(Course.id == course_id).first()
+    if course is not None:
+        dancer_id = course.lesson.user_id
+        if dancer_id == g.id:
             raise HTTPException(status_code=ERROR_DIC[ERROR_COURSE_RESERVE_EXISTS][0],
                                 detail=ERROR_COURSE_RESERVE_EXISTS)
 
-        course_date = f'{course_detail.course_date.date()} {course_detail.start_time}:00'
+        course_date = f'{course.course_date.date()} {course.start_time}:00'
         if datetime.strptime(course_date, date_format) < now:
             raise HTTPException(status_code=ERROR_DIC[ERROR_PAST_SESSION_CANNOT_BE_RESERVED][0],
                                 detail=ERROR_PAST_SESSION_CANNOT_BE_RESERVED)
 
+        # 수업 단톡방 초대
+        room = session.query(ChatRoom).filter(ChatRoom.lesson_id == course.lesson.id).first()
+        if room is not None:
+            room_user_exists = session.query(ChatRoomUser
+                                    ).filter(ChatRoomUser.chat_room_id == room.id,
+                                             ChatRoomUser.user_id == g.id).first()
+            if room_user_exists is None:
+                room_user = ChatRoomUser()
+                session.add(room_user)
+
+                room_user.chat_room_id = room.id
+                room_user.user_id = g.id
+
     user_course = UserCourse()
     session.add(user_course)
+    session.flush()
 
     user_course.user_id = g.id
     user_course.user_ticket_id = request.user_ticket_id
@@ -106,18 +121,6 @@ def post_course_detail_reserve(course_id, request, session, g):
                         ).filter(UserTicket.id == request.user_ticket_id
                         ).first()
     user_ticket.remain_count -= 1
-
-    # 수업 단톡방 초대
-    room = session.query(ChatRoom).filter(ChatRoom.lesson_id == course_detail.lesson.id).first()
-    if room is not None:
-        room_user_exists = session.query(ChatRoomUser).filter(ChatRoomUser.chat_room_id == room.id,
-                                         ChatRoomUser.user_id == g.id).first()
-        if room_user_exists is None:
-            room_user = ChatRoomUser()
-            session.add(room_user)
-
-            room_user.chat_room_id = room.id
-            room_user.user_id = g.id
     return response
 
 

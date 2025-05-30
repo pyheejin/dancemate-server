@@ -46,6 +46,9 @@ class SimpleLessonListSchema(Schema):
     dancer = fields.Nested(UserListSchema(), many=False)
 
 
+simple_lesson_schema = SimpleLessonListSchema(many=False)
+
+
 class SimpleCourseSchema(Schema):
     id = fields.Int()
     title = fields.String()
@@ -287,20 +290,20 @@ class ChatRoomSchema(Schema):
 
     @classmethod
     def get_last_chat(cls, obj):
-        if obj.chat is not None:
+        if len(obj.chat) > 0:
             return obj.chat[0].message
         else:
-            return None
+            return ''
 
     @classmethod
     def get_last_chat_time(cls, obj):
-        if obj.chat is not None:
+        if len(obj.chat) > 0:
             if datetime.today().date() <= obj.chat[0].created_at.date():
                 return obj.chat[0].created_at.strftime('%H:%M')
             else:
                 return obj.chat[0].created_at.strftime('%Y-%m-%d')
         else:
-            return None
+            return ''
 
 
 chat_rooms_schema = ChatRoomSchema(many=True)
@@ -322,6 +325,9 @@ class ChatRoomDetailSchema(Schema):
     created_at = fields.DateTime('%Y-%m-%d %H:%M:%S')
 
     chat = fields.Nested(ChatSchema(), many=True)
+    lesson = fields.Nested(SimpleLessonListSchema(), many=False)
+
+
 
 
 chat_room_schema = ChatRoomDetailSchema(many=False)

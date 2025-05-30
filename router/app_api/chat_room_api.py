@@ -115,11 +115,13 @@ def put_chat_room_detail(chat_room_id: int,
 
 @router.get('/{chat_room_id}', tags=['chat_room'], summary='채팅방 상세', dependencies=[Depends(get_current_user)])
 def get_chat_room_detail(chat_room_id: int,
-                         session: Session = Depends(db.session)):
+                         session: Session = Depends(db.session),
+                         g: User = Depends(get_current_user)):
     result_msg = '채팅방 상세'
     try:
         response = chat_room_controller.get_chat_room_detail(chat_room_id=chat_room_id,
-                                                             session=session)
+                                                             session=session,
+                                                             g=g)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()
@@ -175,7 +177,7 @@ def delete_chat_room_detail(chat_room_id: int,
     return response
 
 
-@router.post('{chat_room_id}/chat', tags=['chat_room'], summary='채팅', dependencies=[Depends(get_current_user)])
+@router.post('/{chat_room_id}/chat', tags=['chat_room'], summary='채팅', dependencies=[Depends(get_current_user)])
 def post_chat_room_detail_chat(chat_room_id: int,
                                request: PostChatModel,
                                session: Session = Depends(db.session),
