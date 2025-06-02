@@ -8,7 +8,6 @@ from config.constant import *
 from database.models import *
 from database.schema import *
 from database.base_model import DefaultModel
-from config.smtp_handler import SMTP
 
 
 def get_chat_room(session, g):
@@ -24,6 +23,10 @@ def get_chat_room(session, g):
                         ).outerjoin(ChatRoomUser,
                                      and_(ChatRoomUser.chat_room_id == ChatRoom.id,
                                           ChatRoomUser.status == constant.STATUS_ACTIVE)
+                        ).outerjoin(ChatRoomNotification,
+                                     and_(ChatRoomNotification.chat_room_id == ChatRoom.id,
+                                          ChatRoomNotification.user_id == g.id,
+                                          ChatRoomUser.status == constant.STATUS_ACTIVE)
                         ).outerjoin(User,
                                      and_(ChatRoomUser.user_id == User.id,
                                           User.status == constant.STATUS_ACTIVE)
@@ -32,6 +35,7 @@ def get_chat_room(session, g):
                         ).options(contains_eager(ChatRoom.lesson),
                                   contains_eager(ChatRoom.chat),
                                   contains_eager(ChatRoom.chat_room_user),
+                                  contains_eager(ChatRoom.room_notification),
                                   contains_eager(ChatRoom.chat_room_user).contains_eager(ChatRoomUser.user),
                         ).order_by(Chat.created_at.desc()
                         ).all()
@@ -136,8 +140,16 @@ def get_chat_room_detail(session, chat_room_id, g):
                     'status': data['status'],
                     'login_user_id': g.id,
                     'user': user_schema.dump(user),
+                    'type': data['type'],
                 }
                 next((e for e in result if e['date'] == data['created_at'].split(' ')[0]))['chat_list'].append(chat)
+
+    # 채팅방 확인
+    room_notification = session.query(ChatRoomNotification
+                            ).filter(ChatRoomNotification.chat_room_id == chat_room_id,
+                                     ChatRoomNotification.user_id == g.id).first()
+    if room_notification is not None:
+        room_notification.status = constant.STATUS_ACTIVE
 
     response.result_data = {
         'chat_room': result,
@@ -176,4 +188,24 @@ def post_chat_room_detail_chat(chat_room_id, request, session, g):
     chat.chat_room_id = chat_room_id
     chat.user_id = g.id
     chat.message = request.message
+
+    # 채팅방 알림
+    room_notification_query = session.query(ChatRoomNotification
+                                    ).filter(ChatRoomNotification.chat_room_id == chat_room_id,
+                                             ChatRoomNotification.user_id != g.id)
+    room_notification_query.update({'status': constant.STATUS_INACTIVE}, synchronize_session=False)
+    return response
+
+
+def post_chat_room_detail_check(chat_room_id, session, g):
+    response = DefaultModel()
+
+    chat_room = session.query(ChatRoom
+                        ).filter(ChatRoom.id == chat_room_id,
+                                 ChatRoom.status == constant.STATUS_ACTIVE).first()
+    if chat_room is None:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DATA_NOT_EXIST)
+
+
     return response

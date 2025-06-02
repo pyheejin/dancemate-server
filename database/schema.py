@@ -277,6 +277,13 @@ qnas_schema = QnaSchema(many=True)
 qna_schema = QnaSchema(many=False)
 
 
+class ChatRoomNotificationSchema(Schema):
+    id = fields.Int()
+    status = fields.Int()
+    user_id = fields.Int()
+    chat_room_id = fields.Int()
+
+
 class ChatRoomSchema(Schema):
     id = fields.Int()
     status = fields.Int()
@@ -287,6 +294,7 @@ class ChatRoomSchema(Schema):
     last_chat_time = fields.Method('get_last_chat_time')
 
     lesson = fields.Nested(SimpleLessonListSchema(), many=False)
+    room_notification = fields.Nested(ChatRoomNotificationSchema(), many=True)
 
     @classmethod
     def get_last_chat(cls, obj):
@@ -311,6 +319,7 @@ chat_rooms_schema = ChatRoomSchema(many=True)
 
 class ChatSchema(Schema):
     id = fields.Int()
+    type = fields.Int()
     status = fields.Int()
     user_id = fields.Int()
     message = fields.String()
