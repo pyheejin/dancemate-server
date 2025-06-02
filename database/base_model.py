@@ -14,6 +14,7 @@ class DefaultLoginModel(BaseModel):
     result_code: int = 200
     result_msg: str = '성공'
     user_id: int = 0
+    type: int = 0
     access_token: str = ''
     refresh_token: str = ''
 
