@@ -49,6 +49,18 @@ class SimpleLessonListSchema(Schema):
 simple_lesson_schema = SimpleLessonListSchema(many=False)
 
 
+class SimpleCourseListSchema(Schema):
+    id = fields.Int()
+    title = fields.String()
+    course_date = fields.DateTime('%Y-%m-%d')
+
+    lesson = fields.Nested(SimpleLessonListSchema(), many=False)
+
+
+simple_course_schema = SimpleCourseListSchema(many=False)
+simple_courses_schema = SimpleCourseListSchema(many=True)
+
+
 class SimpleCourseSchema(Schema):
     id = fields.Int()
     title = fields.String()

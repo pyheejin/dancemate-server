@@ -48,7 +48,7 @@ def get_home(session, g):
                                              UserCourseLike.user_id == g.id,
                                              UserCourseLike.status == constant.STATUS_ACTIVE)
                             ).filter(Course.status == constant.STATUS_ACTIVE,
-                                     # Course.course_date >= today,
+                                     Course.course_date >= today,
                                      UserCourse.user_id == g.id,
                             ).options(contains_eager(Course.lesson),
                                       contains_eager(Course.user_course),

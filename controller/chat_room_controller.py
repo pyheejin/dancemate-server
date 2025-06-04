@@ -152,7 +152,8 @@ def get_chat_room_detail(session, chat_room_id, g):
         room_notification.status = constant.STATUS_ACTIVE
 
     response.result_data = {
-        'chat_room': result,
+        'chat_room': chat_room_schema.dump(chat_room),
+        'chats': result,
         'chat_room_user_count': len(chat_room.chat_room_user),
         'lesson': simple_lesson_schema.dump(chat_room.lesson),
     }
