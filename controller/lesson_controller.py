@@ -195,7 +195,6 @@ def post_lesson_detail_review(lesson_id, request, session, g):
                                      UserCourse.status == constant.STATUS_ACTIVE)
                     ).filter(Lesson.status >= constant.STATUS_INACTIVE,
                              Lesson.id == lesson_id,
-                             UserCourse.course_id == request.course_id
                     ).options(contains_eager(Lesson.course),
                               contains_eager(Lesson.course
                             ).contains_eager(Course.user_course),
@@ -209,7 +208,7 @@ def post_lesson_detail_review(lesson_id, request, session, g):
 
     review.satisfaction = request.rate
     review.user_id = g.id
-    review.lesson_id = lesson_id
+    review.lesson_id = lesson[0].id
     review.user_course_id = request.user_course_id
     review.description = request.description
     return response

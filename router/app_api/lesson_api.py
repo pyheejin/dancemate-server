@@ -34,7 +34,6 @@ class PostLessonModel(BaseModel):
 
 
 class PostLessonDetailReviewModel(BaseModel):
-    course_id: int
     user_course_id: int
     rate: float
     description: str
