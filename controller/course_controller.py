@@ -91,8 +91,7 @@ def post_course_detail_reserve(course_id, request, session, g):
             raise HTTPException(status_code=ERROR_DIC[ERROR_COURSE_RESERVE_EXISTS][0],
                                 detail=ERROR_COURSE_RESERVE_EXISTS)
 
-        course_date = f'{course.course_date.date()} {course.start_time}:00'
-        if datetime.strptime(course_date, date_format) < now:
+        if course.course_date < now:
             raise HTTPException(status_code=ERROR_DIC[ERROR_PAST_SESSION_CANNOT_BE_RESERVED][0],
                                 detail=ERROR_PAST_SESSION_CANNOT_BE_RESERVED)
 
@@ -152,18 +151,17 @@ def post_course_detail_cancel(course_id, session, g):
 
     user_course = session.query(UserCourse
                     ).filter(UserCourse.user_id == g.id,
-                             UserCourse.course_id == course_id
-                    ).first()
+                             UserCourse.course_id == course_id).first()
     if user_course is None:
         raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
                             detail=ERROR_DATA_NOT_EXIST)
 
     course_detail = session.query(Course).filter(Course.id == course_id).first()
     if course_detail is not None:
-        course_date = f'{course_detail.course_date.date()} {course_detail.start_time}:00'
-        if datetime.strptime(course_date, _format) < now:
-            raise HTTPException(status_code=ERROR_DIC[ERROR_PAST_SESSION_CANNOT_BE_RESERVED][0],
-                                detail=ERROR_PAST_SESSION_CANNOT_BE_RESERVED)
+        # 당일 취소 불가
+        if course_detail.course_date <= now:
+            raise HTTPException(status_code=ERROR_DIC[ERROR_NO_SAME_DAY_CANCELLATION][0],
+                                detail=ERROR_NO_SAME_DAY_CANCELLATION)
 
     user_course.status = constant.STATUS_DELETED
 
@@ -253,19 +251,12 @@ def post_course_detail_exists(course_id, session, g):
 
     course_detail = session.query(Course).filter(Course.id == course_id).first()
     if course_detail is not None:
+        # 내가 만든 수업일 경우
         if course_detail.lesson.user_id == g.id:
-            raise HTTPException(status_code=ERROR_DIC[ERROR_COURSE_RESERVE_EXISTS][0],
-                                detail=ERROR_COURSE_RESERVE_EXISTS)
+            raise HTTPException(status_code=ERROR_DIC[ERROR_MY_COURSE_IS_NOT_AVAILABLE_FOR_RESERVATION][0],
+                                detail=ERROR_MY_COURSE_IS_NOT_AVAILABLE_FOR_RESERVATION)
 
-        course_date = f'{course_detail.course_date.date()} {course_detail.start_time}:00'
-        if datetime.strptime(course_date, _format) < now:
+        if course_detail.course_date < now:
             raise HTTPException(status_code=ERROR_DIC[ERROR_PAST_SESSION_CANNOT_BE_RESERVED][0],
                                 detail=ERROR_PAST_SESSION_CANNOT_BE_RESERVED)
-
-    # 내가 만든 수업일 경우
-    my_lesson = session.query(Lesson).filter(Lesson.user_id == g.id,
-                                             Lesson.id == course_detail.lesson_id).first()
-    if my_lesson is not None:
-        raise HTTPException(status_code=ERROR_DIC[ERROR_MY_COURSE_IS_NOT_AVAILABLE_FOR_RESERVATION][0],
-                            detail=ERROR_MY_COURSE_IS_NOT_AVAILABLE_FOR_RESERVATION)
     return response

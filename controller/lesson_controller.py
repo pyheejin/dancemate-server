@@ -60,7 +60,8 @@ def post_lesson(request, session, g):
     session.flush()
 
     for detail in request.detail_list:
-        if today > datetime.strptime(detail.course_date, _format):
+        course_date = f'{detail.course_date} {detail.start_time}:00'
+        if today > datetime.strptime(course_date, _format):
             raise HTTPException(status_code=ERROR_DIC[ERROR_PAST_SESSION_CANNOT_BE_CREATED][0],
                                 detail=ERROR_PAST_SESSION_CANNOT_BE_CREATED)
 
@@ -69,7 +70,7 @@ def post_lesson(request, session, g):
 
         course.lesson_id = lesson.id
         course.title = detail.title
-        course.course_date = detail.course_date
+        course.course_date = course_date
         course.start_time = detail.start_time
         course.end_time = detail.end_time
         course.address = detail.address
@@ -121,7 +122,8 @@ def put_lesson_detail(lesson_id, request, session, g):
     course_query.update({'status': constant.STATUS_DELETED}, synchronize_session=False)
 
     for detail in request.detail_list:
-        if today > datetime.strptime(detail.course_date, _format):
+        course_date = f'{detail.course_date} {detail.start_time}:00'
+        if today > datetime.strptime(course_date, _format):
             raise HTTPException(status_code=ERROR_DIC[ERROR_PAST_SESSION_CANNOT_BE_CREATED][0],
                                 detail=ERROR_PAST_SESSION_CANNOT_BE_CREATED)
 
@@ -130,7 +132,7 @@ def put_lesson_detail(lesson_id, request, session, g):
 
         course.lesson_id = lesson.id
         course.title = detail.title
-        course.course_date = detail.course_date
+        course.course_date = course_date
         course.start_time = detail.start_time
         course.end_time = detail.end_time
         course.address = detail.address

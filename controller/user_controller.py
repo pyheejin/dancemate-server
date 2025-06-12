@@ -38,6 +38,8 @@ def get_user_profile(session, g):
                                       contains_eager(User.reserve_course
                                                      ).contains_eager(UserCourse.course
                                                     ).contains_eager(Course.lesson),
+                            ).order_by(Course.course_date,
+                                       UserTicket.expired_date,
                             ).all()
 
     response.result_data = {

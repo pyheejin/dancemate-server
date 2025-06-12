@@ -150,6 +150,13 @@ def get_chat_room_detail(session, chat_room_id, g):
                                      ChatRoomNotification.user_id == g.id).first()
     if room_notification is not None:
         room_notification.status = constant.STATUS_ACTIVE
+    else:
+        room_notification = ChatRoomNotification()
+        session.add(room_notification)
+
+        room_notification.chat_room_id = chat_room_id
+        room_notification.user_id = g.id
+        room_notification.status = constant.STATUS_ACTIVE
 
     response.result_data = {
         'chat_room': chat_room_schema.dump(chat_room),
