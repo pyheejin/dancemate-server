@@ -33,11 +33,15 @@ def post_qna(request, session, g):
     session.add(qna)
 
     qna.user_id = g.id
+    qna.title = request.title
     qna.question = request.question
+    qna.email = request.email
     session.flush()
 
     smtp = SMTP()
-    smtp.send_email(to_email='laii28@naver.com', msg=request.question)
+    smtp.send_email(to_email=config.EMAIL,
+                    title=f'[댄스메이트] {request.title}',
+                    msg=request.question)
 
     response.result_data = {
         'qna': qna_schema.dump(qna),
@@ -81,4 +85,23 @@ def delete_qna_detail(qna_id, session, g):
                             detail=ERROR_DATA_NOT_EXIST)
 
     qna.status = constant.STATUS_DELETED
+    return response
+
+
+def post_qna_detail_answer(qna_id, request, session):
+    response = DefaultModel()
+
+    qna = session.query(Qna).filter(Qna.id == qna_id).first()
+    if qna is None:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DATA_NOT_EXIST)
+
+    qna.answer = request.answer
+    qna.is_reply = constant.STATUS_ACTIVE
+
+    if qna.email != '':
+        smtp = SMTP()
+        smtp.send_email(to_email=qna.email,
+                        title='[댄스메이트 RE] 문의하신 내용의 답변 드립니다.',
+                        msg=request.answer)
     return response

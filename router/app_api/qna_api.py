@@ -18,7 +18,13 @@ router = APIRouter(
 
 
 class PostQnaModel(BaseModel):
+    email: Optional[str]
+    title: str
     question: str
+
+
+class PostQnaAnswerModel(BaseModel):
+    answer: str
 
 
 @router.get('', tags=['qna'], summary='문의 목록', dependencies=[Depends(get_current_user)])
@@ -154,6 +160,38 @@ def delete_qna_detail(qna_id: int,
         response = qna_controller.delete_qna_detail(qna_id=qna_id,
                                                     session=session,
                                                     g=g)
+    except HTTPException as e:
+        print(f'error: {e.detail}')
+        session.rollback()
+        response = None
+        response = error_response(response, e.detail, e.status_code, result_msg)
+    except Exception as e:
+        print(e)
+        session.rollback()
+
+        response = DefaultModel()
+        response.result_msg = f'{result_msg} 실패'
+        response.result_code = 210
+    else:
+        session.commit()
+        if response is None:
+            response = DefaultModel()
+        if response.result_msg is not None:
+            response.result_msg = f'{result_msg} 성공'
+    finally:
+        session.close()
+    return response
+
+
+@router.post('/{qna_id}/answer', tags=['qna'], summary='문의 답장', dependencies=[Depends(get_current_user)])
+def post_qna_detail_answer(qna_id: int,
+                           request: PostQnaAnswerModel,
+                           session: Session = Depends(db.session)):
+    result_msg = '문의 답장'
+    try:
+        response = qna_controller.post_qna_detail_answer(qna_id=qna_id,
+                                                         request=request,
+                                                         session=session)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()

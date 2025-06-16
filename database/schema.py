@@ -280,8 +280,10 @@ class QnaSchema(Schema):
     status = fields.Int()
     user_id = fields.Int()
     is_reply = fields.Int()
+    title = fields.String()
     question = fields.String()
     answer = fields.String()
+    email = fields.String()
     created_at = fields.DateTime('%Y-%m-%d %H:%M:%S')
 
 

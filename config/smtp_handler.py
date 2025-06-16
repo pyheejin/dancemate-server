@@ -11,12 +11,12 @@ class SMTP:
         self.email = EMAIL
         self.password = PASSWORD
 
-    def send_email(self, to_email, msg):
+    def send_email(self, to_email, title, msg):
         with smtplib.SMTP('smtp.gmail.com') as connection:
             message = MIMEMultipart()
 
             # 메일 제목
-            message['Subject'] = '[댄스메이트] 문의하기'
+            message['Subject'] = title
             message['To'] = to_email
 
             # 메일 본문 내용
