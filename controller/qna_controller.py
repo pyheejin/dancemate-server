@@ -57,7 +57,13 @@ def put_qna_detail(qna_id, request, session):
         raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
                             detail=ERROR_DATA_NOT_EXIST)
 
+    if qna.is_reply == constant.STATUS_ACTIVE:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_COMPLETED_QNA_CANNOT_BE_MODIFIED][0],
+                            detail=ERROR_COMPLETED_QNA_CANNOT_BE_MODIFIED)
+
+    qna.title = request.title
     qna.question = request.question
+    qna.email = request.email
     return response
 
 
@@ -98,6 +104,7 @@ def post_qna_detail_answer(qna_id, request, session):
 
     qna.answer = request.answer
     qna.is_reply = constant.STATUS_ACTIVE
+    qna.answered_at = datetime.now()
 
     if qna.email != '':
         smtp = SMTP()

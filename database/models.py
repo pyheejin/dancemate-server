@@ -159,6 +159,7 @@ class Qna(Base):
     question = Column(Text, comment='질문 내용')
     answer = Column(Text, comment='답변')
     email = Column(String(255), comment='답변 받을 이메일')
+    answered_at = Column(DateTime, comment='답변시각')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 

@@ -19,6 +19,7 @@ ERROR_DANCER_ONLY = 'dancer_only'
 ERROR_PAST_SESSION_CANNOT_BE_CREATED = 'past_session_cannot_be_created'
 ERROR_MY_COURSE_IS_NOT_AVAILABLE_FOR_RESERVATION = 'my_course_is_not_available_for_reservation'
 ERROR_NO_SAME_DAY_CANCELLATION = 'no_same_day_cancellation'
+ERROR_COMPLETED_QNA_CANNOT_BE_MODIFIED = 'completed_qna_cannot_be_modified'
 ERROR_BAD_REQUEST = 'bad_request'
 ERROR_UNAUTHORIZED = 'unauthorized'
 ERROR_TOKEN_EXPIRED = 'token_expired'
@@ -36,6 +37,7 @@ ERROR_DIC = {
     ERROR_PAST_SESSION_CANNOT_BE_CREATED: (213, '날짜를 확인해주세요.'),
     ERROR_MY_COURSE_IS_NOT_AVAILABLE_FOR_RESERVATION: (214, '내 수업은 예약할 수 없습니다.'),
     ERROR_NO_SAME_DAY_CANCELLATION: (215, '당일 취소 불가'),
+    ERROR_COMPLETED_QNA_CANNOT_BE_MODIFIED: (216, '답변이 완료된 문의는 수정할 수 없습니다.'),
     ERROR_BAD_REQUEST: (400, '잘못된 요청입니다'),
     ERROR_UNAUTHORIZED: (401, '로그인이 필요합니다'),
     ERROR_TOKEN_EXPIRED: (404, '토큰이 만료되었습니다.'),
