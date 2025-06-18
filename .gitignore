@@ -306,3 +306,4 @@ pip-selfcheck.json
 ### custom ###
 config/config.py
 .DS_Store
+static/

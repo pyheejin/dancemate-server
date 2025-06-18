@@ -1,6 +1,10 @@
+import pillow_heif
+
 from sqlalchemy import and_, false
 from sqlalchemy.orm import contains_eager
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
+from PIL import Image
+from io import BytesIO
 
 from database.models import *
 from database.schema import *
@@ -44,6 +48,44 @@ def get_user_profile(session, g):
 
     response.result_data = {
         'user': user_detail_schema.dump(user[0]),
+    }
+    return response
+
+
+def post_user_profile(session, request, g):
+    response = DefaultModel()
+
+    user = session.query(User).filter(User.id == g.id).first()
+    if user is None:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DATA_NOT_EXIST)
+
+    user.nickname = request.nickname
+    user.introduction = request.introduction
+
+    # 이미지 업로드
+    if request.image_url is not None:
+        image = request.image_url
+
+        file_data = image.filename.split('.')
+        filename = f'user_{g.id}_profile_image_{file_data[0]}'
+        extension = file_data[1]
+
+        if extension.upper() == 'HEIC':
+            heif_file = pillow_heif.read_heif(image.file.read())
+            img = Image.frombytes(heif_file.mode, heif_file.size, heif_file.data, 'raw')
+        else:
+            img = Image.open(BytesIO(image.file.read()))
+
+        # webp_data = BytesIO()
+        img.save(f'./static/image/{image.filename}', format='jpeg', quality=75)
+        user.image_url = f'{config.base_dir}/static/image/{filename}.jpeg'
+        # webp_data.seek(0)
+
+        # webp_upload_file = UploadFile(webp_data, filename=filename)
+
+    response.result_data = {
+        'user': user_detail_schema.dump(user),
     }
     return response
 
