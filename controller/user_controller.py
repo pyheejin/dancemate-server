@@ -68,7 +68,7 @@ def post_user_profile(session, request, g):
         image = request.image_url
 
         file_data = image.filename.split('.')
-        filename = f'user_{g.id}_profile_image_{file_data[0]}'
+        filename = f'user_{g.id}_profile_{file_data[0]}'
         extension = file_data[1]
 
         if extension.upper() == 'HEIC':
@@ -78,8 +78,8 @@ def post_user_profile(session, request, g):
             img = Image.open(BytesIO(image.file.read()))
 
         # webp_data = BytesIO()
-        img.save(f'./static/image/{image.filename}', format='jpeg', quality=75)
-        user.image_url = f'{config.base_dir}/static/image/{filename}.jpeg'
+        img.save(f'../dancemate_app/assets/images/{filename}.jpeg', format='jpeg', quality=75)
+        user.image_url = f'assets/images/{filename}.jpeg'
         # webp_data.seek(0)
 
         # webp_upload_file = UploadFile(webp_data, filename=filename)
