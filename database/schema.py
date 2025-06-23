@@ -215,7 +215,7 @@ user_tickets_schema = UserTicketSchema(many=True)
 user_ticket_schema = UserTicketSchema(many=False)
 
 
-class UserDetailSchema(Schema):
+class UserProfileSchema(Schema):
     id = fields.Int()
     email = fields.String()
     nickname = fields.String()
@@ -224,6 +224,21 @@ class UserDetailSchema(Schema):
 
     reserve_course = fields.Nested(UserCourseSchema(), many=True)
     mate_ticket = fields.Nested(UserTicketSchema(), many=True)
+
+
+user_profile_schema = UserProfileSchema(many=False)
+
+
+class UserDetailSchema(Schema):
+    id = fields.Int()
+    email = fields.String()
+    nickname = fields.String()
+    introduction = fields.String()
+    image_url = fields.String()
+    expired_day = fields.Int()
+
+    dancer_lesson = fields.Nested(LessonListSchema(), many=True)
+    dancer_ticket = fields.Nested(TicketSchema(), many=True)
 
 
 user_detail_schema = UserDetailSchema(many=False)

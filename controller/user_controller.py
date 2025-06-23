@@ -47,7 +47,7 @@ def get_user_profile(session, g):
                             ).all()
 
     response.result_data = {
-        'user': user_detail_schema.dump(user[0]),
+        'user': user_profile_schema.dump(user[0]),
     }
     return response
 
@@ -85,7 +85,7 @@ def post_user_profile(session, request, g):
         # webp_upload_file = UploadFile(webp_data, filename=filename)
 
     response.result_data = {
-        'user': user_detail_schema.dump(user),
+        'user': user_profile_schema.dump(user),
     }
     return response
 
@@ -93,38 +93,65 @@ def post_user_profile(session, request, g):
 def get_user_detail(session, g, user_id):
     response = DefaultModel()
 
-    is_mine = False
-    if g.id == user_id:
-        is_mine = True
-
     _format = '%Y-%m-%d %H:%M:%S'
     today = datetime.strptime(datetime.now().date().strftime(_format), _format)
 
-    user = session.query(User).outerjoin(UserCourse,
-                                         and_(UserCourse.user_id == User.id,
-                                              UserCourse.status >= constant.STATUS_INACTIVE)
-                            ).outerjoin(Course,
-                                        and_(Course.id == UserCourse.course_id,
-                                             Course.status == constant.STATUS_ACTIVE)
-                            ).outerjoin(Lesson,
-                                        and_(Course.lesson_id == Lesson.id,
-                                             Lesson.status == constant.STATUS_ACTIVE)
-                            ).outerjoin(UserTicket,
-                                        and_(UserTicket.user_id == User.id,
-                                             UserTicket.status >= constant.STATUS_INACTIVE)
-                            ).filter(User.id == g.id,
-                                     UserTicket.expired_date >= today,
-                            ).options(contains_eager(User.mate_ticket),
-                                      contains_eager(User.reserve_course),
-                                      contains_eager(User.reserve_course
-                                                     ).contains_eager(UserCourse.course),
-                                      contains_eager(User.reserve_course
-                                                     ).contains_eager(UserCourse.course
-                                                    ).contains_eager(Course.lesson),
-                            ).all()
+    if g.id == user_id:
+        is_mine = True
+
+        user = session.query(User
+                    ).outerjoin(UserCourse,
+                                and_(UserCourse.user_id == User.id,
+                                     UserCourse.status >= constant.STATUS_INACTIVE)
+                    ).outerjoin(Course,
+                                and_(Course.id == UserCourse.course_id,
+                                     Course.status == constant.STATUS_ACTIVE)
+                    ).outerjoin(Lesson,
+                                and_(Course.lesson_id == Lesson.id,
+                                     Lesson.status == constant.STATUS_ACTIVE)
+                    ).outerjoin(UserTicket,
+                                and_(UserTicket.user_id == User.id,
+                                     UserTicket.status >= constant.STATUS_INACTIVE)
+                    ).filter(User.id == g.id,
+                             UserTicket.expired_date >= today,
+                    ).options(contains_eager(User.mate_ticket),
+                              contains_eager(User.reserve_course),
+                              contains_eager(User.reserve_course
+                                        ).contains_eager(UserCourse.course),
+                              contains_eager(User.reserve_course
+                                        ).contains_eager(UserCourse.course
+                                        ).contains_eager(Course.lesson),
+                    ).all()
+
+        if len(user) > 0:
+            user = user_profile_schema.dump(user[0])
+    else:
+        is_mine = False
+
+        user = session.query(User
+                    ).outerjoin(Ticket,
+                                and_(Ticket.user_id == User.id,
+                                     Ticket.status >= constant.STATUS_INACTIVE)
+                    ).outerjoin(Lesson,
+                                and_(Lesson.user_id == User.id,
+                                     Lesson.last_course_date >= today,
+                                     Lesson.status == constant.STATUS_ACTIVE)
+                    ).outerjoin(Course,
+                                and_(Course.lesson_id == Lesson.id,
+                                     Course.course_date >= today,
+                                     Course.status == constant.STATUS_ACTIVE)
+                    ).filter(User.id == user_id,
+                    ).options(contains_eager(User.dancer_ticket),
+                              contains_eager(User.dancer_lesson),
+                              contains_eager(User.dancer_lesson
+                                ).contains_eager(Lesson.course),
+                    ).all()
+
+        if len(user) > 0:
+            user = user_detail_schema.dump(user[0])
 
     response.result_data = {
-        'user': user_detail_schema.dump(user[0]),
+        'user': user,
         'is_mine': is_mine,
     }
     return response
