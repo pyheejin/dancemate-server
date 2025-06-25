@@ -68,11 +68,11 @@ def post_user_profile(session, request, g):
         image = request.image_url
 
         file_data = image.filename.split('.')
-        if len(file_data) < 5:
-            name = file_data[0][:len(file_data)]
-        else:
-            name = file_data[0][:5]
-        filename = f'user_{g.id}_profile_{name}'
+        # if len(file_data) < 8:
+        #     name = file_data[0][:len(file_data)]
+        # else:
+        #     name = file_data[0][:8]
+        filename = f'user_{g.id}_profile_{file_data[0]}'
         extension = file_data[1]
 
         if extension.upper() == 'HEIC':
