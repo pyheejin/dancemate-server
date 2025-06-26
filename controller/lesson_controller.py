@@ -122,7 +122,8 @@ def put_lesson_detail(lesson_id, request, session, g):
     course_query.update({'status': constant.STATUS_DELETED}, synchronize_session=False)
 
     for detail in request.detail_list:
-        course_date = f'{detail.course_date} {detail.start_time}:00'
+        date = datetime.strptime(detail.course_date, _format).date()
+        course_date = f'{date} {detail.start_time}:00'
         if today > datetime.strptime(course_date, _format):
             raise HTTPException(status_code=ERROR_DIC[ERROR_PAST_SESSION_CANNOT_BE_CREATED][0],
                                 detail=ERROR_PAST_SESSION_CANNOT_BE_CREATED)
