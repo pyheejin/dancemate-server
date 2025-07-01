@@ -11,6 +11,7 @@ from database.schema import *
 from database.base_model import DefaultModel, DefaultLoginModel
 from config.jwt_handler import JWT
 from config.constant import *
+from config.s3 import *
 
 
 def get_user_profile(session, g):
@@ -68,11 +69,11 @@ def post_user_profile(session, request, g):
         image = request.image_url
 
         file_data = image.filename.split('.')
-        # if len(file_data) < 8:
-        #     name = file_data[0][:len(file_data)]
-        # else:
-        #     name = file_data[0][:8]
-        filename = f'user_{g.id}_profile_{file_data[0]}'
+        if len(file_data) < 5:
+            name = file_data[0][:len(file_data)]
+        else:
+            name = file_data[0][:5]
+        filename = f'user_{g.id}_profile_{name}'
         extension = file_data[1]
 
         if extension.upper() == 'HEIC':
@@ -81,12 +82,17 @@ def post_user_profile(session, request, g):
         else:
             img = Image.open(BytesIO(image.file.read()))
 
-        # webp_data = BytesIO()
-        img.save(f'../dancemate_app/assets/images/{filename}.jpeg', format='jpeg', quality=75)
-        user.image_url = f'assets/images/{filename}.jpeg'
-        # webp_data.seek(0)
+        webp_data = BytesIO()
+        img.save(webp_data, format='jpeg', quality=75)
+        webp_data.seek(0)
 
-        # webp_upload_file = UploadFile(webp_data, filename=filename)
+        webp_upload_file = UploadFile(webp_data, filename=filename)
+
+        # aws에 이미지 업로드
+        file_path, image_url = upload_file(file=webp_upload_file,
+                                           bucket_folder='profile',
+                                           object_name=filename)
+        user.image_url = image_url
 
     response.result_data = {
         'user': user_profile_schema.dump(user),
