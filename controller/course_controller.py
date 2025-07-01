@@ -75,7 +75,8 @@ def post_course_detail_reserve(course_id, request, session, g):
 
     exists = session.query(UserCourse
                     ).filter(UserCourse.user_id == g.id,
-                             UserCourse.course_id == course_id
+                             UserCourse.course_id == course_id,
+                             UserCourse.status == constant.STATUS_ACTIVE,
                     ).first()
     if exists is not None:
         raise HTTPException(status_code=ERROR_DIC[ERROR_COURSE_RESERVE_EXISTS][0],
@@ -98,13 +99,7 @@ def post_course_detail_reserve(course_id, request, session, g):
         # 수업 단톡방 초대
         room = session.query(ChatRoom).filter(ChatRoom.lesson_id == course.lesson.id).first()
         if room is not None:
-            chat = Chat()
-            session.add(chat)
 
-            chat.chat_room_id = room.id
-            chat.user_id = room.user_id
-            chat.type = 99
-            chat.message = f'{room.user.nickname}님이 {g.nickname}님을 초대했습니다.'
 
             room_user_exists = session.query(ChatRoomUser
                                     ).filter(ChatRoomUser.chat_room_id == room.id,
@@ -115,6 +110,14 @@ def post_course_detail_reserve(course_id, request, session, g):
 
                 room_user.chat_room_id = room.id
                 room_user.user_id = g.id
+
+                chat = Chat()
+                session.add(chat)
+
+                chat.chat_room_id = room.id
+                chat.user_id = room.user_id
+                chat.type = 99
+                chat.message = f'{room.user.nickname}님이 {g.nickname}님을 초대했습니다.'
 
                 room_notification_exists = session.query(ChatRoomNotification
                                                   ).filter(ChatRoomNotification.chat_room_id == room.id,
