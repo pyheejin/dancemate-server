@@ -63,13 +63,23 @@ def post_user_profile(session, request, g):
 
     user.nickname = request.nickname
     user.introduction = request.introduction
+    return response
+
+
+def post_user_profile_image(session, request, g):
+    response = DefaultModel()
+
+    user = session.query(User).filter(User.id == g.id).first()
+    if user is None:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DATA_NOT_EXIST)
 
     # 이미지 업로드
     if request.image_url is not None:
         image = request.image_url
 
         file_data = image.filename.split('.')
-        if len(file_data) < 5:
+        if len(file_data[0]) < 5:
             name = file_data[0][:len(file_data)]
         else:
             name = file_data[0][:5]
@@ -94,9 +104,9 @@ def post_user_profile(session, request, g):
                                            object_name=filename)
         user.image_url = image_url
 
-    response.result_data = {
-        'user': user_profile_schema.dump(user),
-    }
+        response.result_data = {
+            'image_url': image_url,
+        }
     return response
 
 
