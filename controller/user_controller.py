@@ -1,10 +1,6 @@
-import pillow_heif
-
-from sqlalchemy import and_, false
+from sqlalchemy import and_
 from sqlalchemy.orm import contains_eager
-from fastapi import HTTPException, UploadFile
-from PIL import Image
-from io import BytesIO
+from fastapi import HTTPException
 
 from database.models import *
 from database.schema import *
@@ -63,50 +59,6 @@ def post_user_profile(session, request, g):
 
     user.nickname = request.nickname
     user.introduction = request.introduction
-    return response
-
-
-def post_user_profile_image(session, request, g):
-    response = DefaultModel()
-
-    user = session.query(User).filter(User.id == g.id).first()
-    if user is None:
-        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
-                            detail=ERROR_DATA_NOT_EXIST)
-
-    # 이미지 업로드
-    if request.image_url is not None:
-        image = request.image_url
-
-        file_data = image.filename.split('.')
-        if len(file_data[0]) < 5:
-            name = file_data[0][:len(file_data)]
-        else:
-            name = file_data[0][:5]
-        filename = f'user_{g.id}_profile_{name}'
-        extension = file_data[1]
-
-        if extension.upper() == 'HEIC':
-            heif_file = pillow_heif.read_heif(image.file.read())
-            img = Image.frombytes(heif_file.mode, heif_file.size, heif_file.data, 'raw')
-        else:
-            img = Image.open(BytesIO(image.file.read()))
-
-        webp_data = BytesIO()
-        img.save(webp_data, format='jpeg', quality=75)
-        webp_data.seek(0)
-
-        webp_upload_file = UploadFile(webp_data, filename=filename)
-
-        # aws에 이미지 업로드
-        file_path, image_url = upload_file(file=webp_upload_file,
-                                           bucket_folder='profile',
-                                           object_name=filename)
-        user.image_url = image_url
-
-        response.result_data = {
-            'image_url': image_url,
-        }
     return response
 
 

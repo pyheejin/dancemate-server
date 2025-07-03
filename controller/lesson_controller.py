@@ -1,8 +1,6 @@
-from dateutil.utils import today
 from fastapi import HTTPException
 from sqlalchemy import and_
 from sqlalchemy.orm import contains_eager
-from datetime import timedelta
 
 from config.constant import *
 from database.models import *

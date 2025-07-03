@@ -1,6 +1,5 @@
 from typing import Optional, List
 
-from PIL.ImageChops import constant
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
