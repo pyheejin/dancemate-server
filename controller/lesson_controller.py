@@ -159,6 +159,9 @@ def get_lesson_detail(session, lesson_id, g):
     #         filter_list.append(Course.course_date >= now)
 
     lesson = session.query(Lesson
+                    ).outerjoin(LessonImage,
+                                and_(LessonImage.lesson_id == Lesson.id,
+                                     LessonImage.status == constant.STATUS_ACTIVE)
                     ).outerjoin(Course,
                                 and_(Course.lesson_id == Lesson.id,
                                      Course.status == constant.STATUS_ACTIVE)
@@ -170,9 +173,12 @@ def get_lesson_detail(session, lesson_id, g):
                              Lesson.id == lesson_id,
                              *filter_list,
                     ).options(contains_eager(Lesson.course),
+                              contains_eager(Lesson.lesson_image),
                               contains_eager(Lesson.course
                             ).contains_eager(Course.like_user),
+                    ).order_by(LessonImage.order.asc()
                     ).all()
+
     if len(lesson) == 0:
         raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
                             detail=ERROR_DATA_NOT_EXIST)

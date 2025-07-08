@@ -124,6 +124,12 @@ courses_schema = CourseSchema(many=True)
 course_schema = CourseSchema(many=False)
 
 
+class LessonImageSchema(Schema):
+    id = fields.Int()
+    order = fields.Int()
+    image_url = fields.String()
+
+
 class LessonListSchema(Schema):
     id = fields.Int()
     title = fields.String()
@@ -135,6 +141,7 @@ class LessonListSchema(Schema):
 
     dancer = fields.Nested(UserListSchema(), many=False)
     course = fields.Nested(CourseSchema(), many=True)
+    lesson_image = fields.Nested(LessonImageSchema(), many=True)
 
 
 lessons_schema = LessonListSchema(many=True)

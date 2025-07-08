@@ -60,6 +60,7 @@ class Lesson(Base):
 
     dancer = relationship('User', back_populates='dancer_lesson')
     course = relationship('Course', back_populates='lesson')
+    lesson_image = relationship('LessonImage', back_populates='lesson')
     review = relationship('Review', back_populates='lesson')
     chat_room = relationship('ChatRoom', back_populates='lesson')
 
@@ -90,10 +91,12 @@ class LessonImage(Base):
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
     order = Column(Integer, comment='순서')
-    lesson_id = Column(Integer, comment='')
+    lesson_id = Column(Integer, ForeignKey('lesson.id'), comment='')
     image_url = Column(Text, comment='이미지 url')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    lesson = relationship('Lesson', back_populates='lesson_image')
 
 
 class Ticket(Base):
