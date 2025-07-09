@@ -10,7 +10,7 @@ from database.schema import *
 from database.base_model import DefaultModel
 
 
-def get_chat_room(session, g):
+def get_chat_room(type, session, g):
     response = DefaultModel()
 
     chat_rooms = session.query(ChatRoom
@@ -31,6 +31,7 @@ def get_chat_room(session, g):
                                      and_(ChatRoomUser.user_id == User.id,
                                           User.status == constant.STATUS_ACTIVE)
                         ).filter(ChatRoom.status == constant.STATUS_ACTIVE,
+                                 ChatRoom.type == type,
                                  ChatRoomUser.user_id == g.id,
                         ).options(contains_eager(ChatRoom.lesson),
                                   contains_eager(ChatRoom.chat),
@@ -44,6 +45,42 @@ def get_chat_room(session, g):
         'count': len(chat_rooms),
         'chat_rooms': chat_rooms_schema.dump(chat_rooms),
     }
+    return response
+
+
+def post_chat_room(request, session, g):
+    response = DefaultModel()
+
+    room_exists = session.query(ChatRoomUser
+                            ).filter(ChatRoomUser.user_id == request.user_id,
+                                     ChatRoomUser.user_id == g.id).first()
+    if room_exists is None:
+        chat_room = ChatRoom()
+        session.add(chat_room)
+
+        chat_room.type = 1
+        chat_room.user_id = g.id
+        session.flush()
+
+        # 방장
+        room_user = ChatRoomUser()
+        session.add(room_user)
+
+        room_user.is_notice = 1
+        room_user.chat_room_id = chat_room.id
+        room_user.user_id = g.id
+
+        # 초대원
+        room_user = ChatRoomUser()
+        session.add(room_user)
+
+        room_user.is_notice = 1
+        room_user.chat_room_id = chat_room.id
+        room_user.user_id = request.user_id
+
+        response.result_data = {
+            'chat_room': chat_room_schema.dump(chat_room),
+        }
     return response
 
 
@@ -79,7 +116,7 @@ def get_chat_room_dancer(session, g):
     return response
 
 
-def put_chat_room_detail(chat_room_id, request, session):
+def put_chat_room_detail(chat_room_id, request, session, g):
     response = DefaultModel()
 
     chat_room = session.query(ChatRoom).filter(ChatRoom.id == chat_room_id).first()
@@ -87,7 +124,13 @@ def put_chat_room_detail(chat_room_id, request, session):
         raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
                             detail=ERROR_DATA_NOT_EXIST)
 
-    chat_room.question = request.question
+    room_user = session.query(ChatRoomUser).filter(ChatRoomUser.chat_room_id == chat_room_id,
+                                                   ChatRoomUser.user_id == g.id).first()
+    if room_user is None:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DATA_NOT_EXIST)
+
+    room_user.is_notice = request.is_notice
     return response
 
 

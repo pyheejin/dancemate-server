@@ -322,6 +322,7 @@ class ChatRoomNotificationSchema(Schema):
 
 class ChatRoomSchema(Schema):
     id = fields.Int()
+    type = fields.Int()
     status = fields.Int()
     user_id = fields.Int()
     lesson_id = fields.Int()
@@ -371,8 +372,6 @@ class ChatRoomDetailSchema(Schema):
 
     chat = fields.Nested(ChatSchema(), many=True)
     lesson = fields.Nested(SimpleLessonListSchema(), many=False)
-
-
 
 
 chat_room_schema = ChatRoomDetailSchema(many=False)

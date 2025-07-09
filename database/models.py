@@ -264,6 +264,7 @@ class ChatRoom(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
+    type = Column(Integer, default=1, comment='1:DM, 50:수업톡')
     user_id = Column(Integer, ForeignKey('user.id'), comment='')
     lesson_id = Column(Integer, ForeignKey('lesson.id'), comment='')
     created_at = Column(DateTime, default=datetime.now)
@@ -297,6 +298,7 @@ class ChatRoomUser(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
+    is_notice = Column(Integer, default=1, comment='1:알림 활성화, 0:알림 비활성화')
     chat_room_id = Column(Integer, ForeignKey('chat_room.id'), comment='')
     user_id = Column(Integer, ForeignKey('user.id'), comment='')
     created_at = Column(DateTime, default=datetime.now)
