@@ -15,21 +15,21 @@ def get_chat_room(type, session, g):
 
     chat_rooms = session.query(ChatRoom
                         ).outerjoin(Lesson,
-                                     and_(ChatRoom.lesson_id == Lesson.id,
-                                          ChatRoom.status == constant.STATUS_ACTIVE)
+                                    and_(ChatRoom.lesson_id == Lesson.id,
+                                         ChatRoom.status == constant.STATUS_ACTIVE)
                         ).outerjoin(Chat,
-                                     and_(Chat.chat_room_id == ChatRoom.id,
-                                          Chat.status == constant.STATUS_ACTIVE)
+                                    and_(Chat.chat_room_id == ChatRoom.id,
+                                         Chat.status == constant.STATUS_ACTIVE)
                         ).outerjoin(ChatRoomUser,
-                                     and_(ChatRoomUser.chat_room_id == ChatRoom.id,
-                                          ChatRoomUser.status == constant.STATUS_ACTIVE)
+                                    and_(ChatRoomUser.chat_room_id == ChatRoom.id,
+                                         ChatRoomUser.status == constant.STATUS_ACTIVE)
                         ).outerjoin(ChatRoomNotification,
-                                     and_(ChatRoomNotification.chat_room_id == ChatRoom.id,
-                                          ChatRoomNotification.user_id == g.id,
-                                          ChatRoomUser.status == constant.STATUS_ACTIVE)
+                                    and_(ChatRoomNotification.chat_room_id == ChatRoom.id,
+                                         ChatRoomNotification.user_id == g.id,
+                                         ChatRoomUser.status == constant.STATUS_ACTIVE)
                         ).outerjoin(User,
-                                     and_(ChatRoomUser.user_id == User.id,
-                                          User.status == constant.STATUS_ACTIVE)
+                                    and_(ChatRoomUser.user_id == User.id,
+                                         User.status == constant.STATUS_ACTIVE)
                         ).filter(ChatRoom.status == constant.STATUS_ACTIVE,
                                  ChatRoom.type == type,
                                  ChatRoomUser.user_id == g.id,
@@ -60,6 +60,7 @@ def post_chat_room(request, session, g):
 
         chat_room.type = 1
         chat_room.user_id = g.id
+        chat_room.friend_id = request.user_id
         session.flush()
 
         # 방장

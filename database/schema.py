@@ -222,6 +222,17 @@ user_tickets_schema = UserTicketSchema(many=True)
 user_ticket_schema = UserTicketSchema(many=False)
 
 
+class SimpleUserDetailSchema(Schema):
+    id = fields.Int()
+    email = fields.String()
+    nickname = fields.String()
+    introduction = fields.String()
+    image_url = fields.String()
+
+
+simple_user_detail_schema = SimpleUserDetailSchema(many=False)
+
+
 class UserProfileSchema(Schema):
     id = fields.Int()
     email = fields.String()
@@ -330,6 +341,7 @@ class ChatRoomSchema(Schema):
     last_chat = fields.Method('get_last_chat')
     last_chat_time = fields.Method('get_last_chat_time')
 
+    friend = fields.Nested(SimpleUserDetailSchema(), many=False)
     lesson = fields.Nested(SimpleLessonListSchema(), many=False)
     room_notification = fields.Nested(ChatRoomNotificationSchema(), many=True)
 
@@ -372,6 +384,8 @@ class ChatRoomDetailSchema(Schema):
 
     chat = fields.Nested(ChatSchema(), many=True)
     lesson = fields.Nested(SimpleLessonListSchema(), many=False)
+    user = fields.Nested(SimpleUserDetailSchema(), many=False)
+    friend = fields.Nested(SimpleUserDetailSchema(), many=False)
 
 
 chat_room_schema = ChatRoomDetailSchema(many=False)
