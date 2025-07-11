@@ -341,6 +341,7 @@ class ChatRoomSchema(Schema):
     last_chat = fields.Method('get_last_chat')
     last_chat_time = fields.Method('get_last_chat_time')
 
+    user = fields.Nested(SimpleUserDetailSchema(), many=False)
     friend = fields.Nested(SimpleUserDetailSchema(), many=False)
     lesson = fields.Nested(SimpleLessonListSchema(), many=False)
     room_notification = fields.Nested(ChatRoomNotificationSchema(), many=True)

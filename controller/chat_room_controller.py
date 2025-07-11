@@ -44,6 +44,7 @@ def get_chat_room(type, session, g):
     response.result_data = {
         'count': len(chat_rooms),
         'chat_rooms': chat_rooms_schema.dump(chat_rooms),
+        'login_user_id': g.id,
     }
     return response
 
@@ -117,7 +118,7 @@ def get_chat_room_dancer(session, g):
     return response
 
 
-def put_chat_room_detail(chat_room_id, request, session, g):
+def put_chat_room_detail(chat_room_id, session, g):
     response = DefaultModel()
 
     chat_room = session.query(ChatRoom).filter(ChatRoom.id == chat_room_id).first()
@@ -131,7 +132,12 @@ def put_chat_room_detail(chat_room_id, request, session, g):
         raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
                             detail=ERROR_DATA_NOT_EXIST)
 
-    room_user.is_notice = request.is_notice
+    if room_user.is_notice == 1:
+        is_notice = 0
+    else:
+        is_notice = 1
+
+    room_user.is_notice = is_notice
     return response
 
 
@@ -202,11 +208,18 @@ def get_chat_room_detail(session, chat_room_id, g):
         room_notification.user_id = g.id
         room_notification.status = constant.STATUS_ACTIVE
 
+    is_notice = 0
+    for user in chat_room.chat_room_user:
+        if user.user_id == g.id:
+            is_notice = user.is_notice
+
     response.result_data = {
         'chat_room': chat_room_schema.dump(chat_room),
         'chats': result,
         'chat_room_user_count': len(chat_room.chat_room_user),
         'lesson': simple_lesson_schema.dump(chat_room.lesson),
+        'is_notice': is_notice,
+        'login_user_id': g.id,
     }
     return response
 
@@ -214,13 +227,26 @@ def get_chat_room_detail(session, chat_room_id, g):
 def delete_chat_room_detail(chat_room_id, session, g):
     response = DefaultModel()
 
-    chat_room = session.query(ChatRoom).filter(ChatRoom.id == chat_room_id,
-                                               ChatRoom.user_id == g.id).first()
-    if chat_room is None:
+    chat_room_data = session.query(ChatRoom
+                            ).filter(ChatRoom.id == chat_room_id,
+                                     ChatRoom.user_id == g.id).all()
+    if len(chat_room_data) == 0:
         raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
                             detail=ERROR_DATA_NOT_EXIST)
 
-    chat_room.status = constant.STATUS_DELETED
+    chat_room = chat_room_data[0]
+
+    if chat_room.type == 1:
+        if len(chat_room.chat_room_user) <= 1:
+            chat_room.status = constant.STATUS_DELETED
+
+        room_user_query = session.query(ChatRoomUser
+                                ).filter(ChatRoomUser.chat_room_id == chat_room_id,
+                                         ChatRoomUser.user_id == g.id,
+                                         ChatRoomUser.status >= constant.STATUS_INACTIVE)
+
+        room_user_query.update({'status': constant.STATUS_DELETED},
+                               synchronize_session=False)
     return response
 
 

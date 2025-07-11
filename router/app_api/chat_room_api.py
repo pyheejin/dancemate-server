@@ -21,10 +21,6 @@ class PostChatRoomModel(BaseModel):
     user_id: int
 
 
-class PutChatRoomModel(BaseModel):
-    is_notice: int = 1
-
-
 class PostChatModel(BaseModel):
     message: str
 
@@ -125,13 +121,11 @@ def get_chat_room_dancer(session: Session = Depends(db.session),
 
 @router.put('/{chat_room_id}', tags=['chat_room'], summary='채팅방 수정', dependencies=[Depends(get_current_user)])
 def put_chat_room_detail(chat_room_id: int,
-                         request: PutChatRoomModel,
                          session: Session = Depends(db.session),
                          g: User = Depends(get_current_user)):
     result_msg = '채팅방 수정'
     try:
         response = chat_room_controller.put_chat_room_detail(chat_room_id=chat_room_id,
-                                                             request=request,
                                                              session=session,
                                                              g=g)
     except HTTPException as e:
