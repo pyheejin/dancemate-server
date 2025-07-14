@@ -32,13 +32,14 @@ def get_chat_room(type, session, g):
                                          User.status == constant.STATUS_ACTIVE)
                         ).filter(ChatRoom.status == constant.STATUS_ACTIVE,
                                  ChatRoom.type == type,
-                                 ChatRoomUser.user_id == g.id,
+                                 # ChatRoomUser.user_id == g.id,
                         ).options(contains_eager(ChatRoom.lesson),
                                   contains_eager(ChatRoom.chat),
                                   contains_eager(ChatRoom.chat_room_user),
                                   contains_eager(ChatRoom.room_notification),
                                   contains_eager(ChatRoom.chat_room_user).contains_eager(ChatRoomUser.user),
-                        ).order_by(Chat.created_at.desc()
+                        ).order_by(Chat.created_at.desc(),
+                                   Chat.type.asc(),
                         ).all()
 
     response.result_data = {
@@ -56,6 +57,12 @@ def post_chat_room(request, session, g):
                             ).filter(ChatRoomUser.user_id == request.user_id,
                                      ChatRoomUser.user_id == g.id).first()
     if room_exists is None:
+        # 초대 받은 유저
+        invited_user = session.query(User).filter(User.id == request.user_id).first()
+        if invited_user is None:
+            raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                                detail=ERROR_DATA_NOT_EXIST)
+
         chat_room = ChatRoom()
         session.add(chat_room)
 
@@ -72,13 +79,22 @@ def post_chat_room(request, session, g):
         room_user.chat_room_id = chat_room.id
         room_user.user_id = g.id
 
-        # 초대원
+        # 초대 메시지
+        chat = Chat()
+        session.add(chat)
+
+        chat.type = 99
+        chat.chat_room_id = chat_room.id
+        chat.user_id = g.id
+        chat.message = f'{g.nickname}님이 {invited_user.nickname}님을 초대했습니다.'
+
+        # 초대 받은 유저
         room_user = ChatRoomUser()
         session.add(room_user)
 
         room_user.is_notice = 1
         room_user.chat_room_id = chat_room.id
-        room_user.user_id = request.user_id
+        room_user.user_id = invited_user.id
 
         response.result_data = {
             'chat_room': chat_room_schema.dump(chat_room),
@@ -163,7 +179,8 @@ def get_chat_room_detail(session, chat_room_id, g):
                                   contains_eager(ChatRoom.chat),
                                   contains_eager(ChatRoom.chat_room_user),
                                   contains_eager(ChatRoom.chat_room_user).contains_eager(ChatRoomUser.user),
-                        ).order_by(Chat.created_at.desc()
+                        ).order_by(Chat.created_at.desc(),
+                                   Chat.type.asc(),
                         ).all()
     if len(chat_room) == 0:
         raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
@@ -227,26 +244,37 @@ def get_chat_room_detail(session, chat_room_id, g):
 def delete_chat_room_detail(chat_room_id, session, g):
     response = DefaultModel()
 
-    chat_room_data = session.query(ChatRoom
-                            ).filter(ChatRoom.id == chat_room_id,
-                                     ChatRoom.user_id == g.id).all()
-    if len(chat_room_data) == 0:
+    chat_room = session.query(ChatRoom
+                        ).filter(ChatRoom.id == chat_room_id,
+                                 ChatRoom.user_id == g.id).first()
+    if chat_room is None:
         raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
                             detail=ERROR_DATA_NOT_EXIST)
 
-    chat_room = chat_room_data[0]
+    room_user_query = session.query(ChatRoomUser
+                            ).filter(ChatRoomUser.chat_room_id == chat_room_id,
+                                     ChatRoomUser.status >= constant.STATUS_INACTIVE)
 
+    # 1:DM, 50:수업톡
     if chat_room.type == 1:
-        if len(chat_room.chat_room_user) <= 1:
+        if len(room_user_query.all()) <= 1:  # 유저가 전부 나가면 채팅방 삭제
             chat_room.status = constant.STATUS_DELETED
 
-        room_user_query = session.query(ChatRoomUser
-                                ).filter(ChatRoomUser.chat_room_id == chat_room_id,
-                                         ChatRoomUser.user_id == g.id,
-                                         ChatRoomUser.status >= constant.STATUS_INACTIVE)
+        room_user = room_user_query.filter(ChatRoomUser.user_id == g.id).first()
+        if room_user is None:
+            raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                                detail=ERROR_DATA_NOT_EXIST)
 
-        room_user_query.update({'status': constant.STATUS_DELETED},
-                               synchronize_session=False)
+        room_user.status = constant.STATUS_DELETED
+
+        # 퇴장 메시지
+        chat = Chat()
+        session.add(chat)
+
+        chat.type = 99
+        chat.chat_room_id = chat_room.id
+        chat.user_id = g.id
+        chat.message = f'{g.nickname}님이 퇴장했습니다.'
     return response
 
 
