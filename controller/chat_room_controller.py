@@ -32,7 +32,7 @@ def get_chat_room(type, session, g):
                                          User.status == constant.STATUS_ACTIVE)
                         ).filter(ChatRoom.status == constant.STATUS_ACTIVE,
                                  ChatRoom.type == type,
-                                 # ChatRoomUser.user_id == g.id,
+                                 ChatRoomUser.user_id == g.id,
                         ).options(contains_eager(ChatRoom.lesson),
                                   contains_eager(ChatRoom.chat),
                                   contains_eager(ChatRoom.chat_room_user),
@@ -245,8 +245,7 @@ def delete_chat_room_detail(chat_room_id, session, g):
     response = DefaultModel()
 
     chat_room = session.query(ChatRoom
-                        ).filter(ChatRoom.id == chat_room_id,
-                                 ChatRoom.user_id == g.id).first()
+                        ).filter(ChatRoom.id == chat_room_id).first()
     if chat_room is None:
         raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
                             detail=ERROR_DATA_NOT_EXIST)
