@@ -59,5 +59,6 @@ def get_home(session, g):
         'recommend_users': user_list_schema.dump(recommend_users),
         'today_lessons': lessons_schema.dump(today_lessons),
         'reserve_lessons': courses_schema.dump(reserve_lessons),
+        'login_user_id': g.id,
     }
     return response

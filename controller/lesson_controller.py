@@ -149,14 +149,14 @@ def put_lesson_detail(lesson_id, request, session, g):
 def get_lesson_detail(session, lesson_id, g):
     response = DefaultModel()
 
-    date_format = '%Y-%m-%d %H:%M:%S'
-    now = datetime.strptime(datetime.now().strftime(date_format), date_format)
+    _format = '%Y-%m-%d %H:%M:%S'
+    today = datetime.strptime(datetime.now().date().strftime(_format), _format)
 
     filter_list = []
     lesson = session.query(Lesson).filter(Lesson.user_id == g.id).first()
     # if lesson is None:
     #     if g.type == constant.USER_TYPE_MATE:
-    #         filter_list.append(Course.course_date >= now)
+    #         filter_list.append(Course.course_date >= today)
 
     lesson = session.query(Lesson
                     ).outerjoin(LessonImage,
@@ -183,8 +183,24 @@ def get_lesson_detail(session, lesson_id, g):
         raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
                             detail=ERROR_DATA_NOT_EXIST)
 
+    user_ticket = session.query(UserTicket
+                        ).outerjoin(Ticket, UserTicket.ticket_id == Ticket.id,
+                        ).outerjoin(User, UserTicket.user_id == User.id,
+                        ).filter(UserTicket.user_id == g.id,
+                                 UserTicket.status >= constant.STATUS_INACTIVE,
+                                 UserTicket.expired_date >= today,
+                                 Ticket.user_id == lesson[0].user_id
+                        ).options(contains_eager(UserTicket.ticket),
+                                  contains_eager(UserTicket.mate),
+                        ).order_by(UserTicket.expired_date.asc()
+                        ).first()
+    ticket_count = 0
+    if user_ticket is not None:
+        ticket_count = user_ticket.remain_count
+
     response.result_data = {
         'lesson': lesson_schema.dump(lesson[0]),
+        'ticket_count': ticket_count,
     }
     return response
 

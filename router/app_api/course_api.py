@@ -216,11 +216,13 @@ def post_course_detail_exists(course_id: int,
 
 @router.get('/{course_id}', tags=['course'], summary='수업 상세', dependencies=[Depends(get_current_user)])
 def get_course_detail(course_id: int,
-                      session: Session = Depends(db.session)):
+                      session: Session = Depends(db.session),
+                      g: User = Depends(get_current_user)):
     result_msg = '수업 상세'
     try:
         response = course_controller.get_course_detail(course_id=course_id,
-                                                       session=session)
+                                                       session=session,
+                                                       g=g)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()

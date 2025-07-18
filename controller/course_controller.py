@@ -10,16 +10,19 @@ from database.schema import *
 from database.base_model import DefaultModel
 
 
-def get_course_detail(course_id, session):
+def get_course_detail(course_id, session, g):
     response = DefaultModel()
 
     course = session.query(Course
                     ).outerjoin(Lesson,
                                 and_(Course.lesson_id == Lesson.id,
                                      Lesson.status >= constant.STATUS_INACTIVE)
+                    ).outerjoin(User, Lesson.user_id == User.id,
                     ).filter(Course.status >= constant.STATUS_INACTIVE,
                              Course.id == course_id,
                     ).options(contains_eager(Course.lesson),
+                              contains_eager(Course.lesson
+                                ).contains_eager(Lesson.dancer),
                     ).first()
 
     if course is None:
@@ -73,17 +76,30 @@ def get_course_detail_reserve(session, course_id, g):
 def post_course_detail_reserve(course_id, request, session, g):
     response = DefaultModel()
 
+    # 이미 예약한 수업일 경우
     exists = session.query(UserCourse
-                    ).filter(UserCourse.user_id == g.id,
-                             UserCourse.course_id == course_id,
-                             UserCourse.status == constant.STATUS_ACTIVE,
-                    ).first()
+                           ).filter(UserCourse.user_id == g.id,
+                                    UserCourse.course_id == course_id,
+                                    UserCourse.status == constant.STATUS_ACTIVE,
+                                    ).first()
     if exists is not None:
         raise HTTPException(status_code=ERROR_DIC[ERROR_COURSE_RESERVE_EXISTS][0],
                             detail=ERROR_COURSE_RESERVE_EXISTS)
 
-    date_format = '%Y-%m-%d %H:%M:%S'
-    now = datetime.strptime(datetime.now().strftime(date_format), date_format)
+    # 날짜가 지난 회차일 경우
+    _format = '%Y-%m-%d %H:%M:%S'
+    now = datetime.strptime(datetime.now().strftime(_format), _format)
+
+    course_detail = session.query(Course).filter(Course.id == course_id).first()
+    if course_detail is not None:
+        # 내가 만든 수업일 경우
+        if course_detail.lesson.user_id == g.id:
+            raise HTTPException(status_code=ERROR_DIC[ERROR_MY_COURSE_IS_NOT_AVAILABLE_FOR_RESERVATION][0],
+                                detail=ERROR_MY_COURSE_IS_NOT_AVAILABLE_FOR_RESERVATION)
+
+        if course_detail.course_date < now:
+            raise HTTPException(status_code=ERROR_DIC[ERROR_PAST_SESSION_CANNOT_BE_RESERVED][0],
+                                detail=ERROR_PAST_SESSION_CANNOT_BE_RESERVED)
 
     course = session.query(Course).filter(Course.id == course_id).first()
     if course is not None:
@@ -242,7 +258,8 @@ def post_course_detail_exists(course_id, session, g):
     # 이미 예약한 수업일 경우
     exists = session.query(UserCourse
                     ).filter(UserCourse.user_id == g.id,
-                             UserCourse.course_id == course_id
+                             UserCourse.course_id == course_id,
+                             UserCourse.status == constant.STATUS_ACTIVE,
                     ).first()
     if exists is not None:
         raise HTTPException(status_code=ERROR_DIC[ERROR_COURSE_RESERVE_EXISTS][0],

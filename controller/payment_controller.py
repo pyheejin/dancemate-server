@@ -22,7 +22,8 @@ def post_payment(session, request, g):
     expired_date = datetime.strptime((today + timedelta(days=30)).strftime(_format), _format)
 
     exists = session.query(UserTicket).filter(UserTicket.user_id == g.id,
-                                              UserTicket.ticket_id == request.ticket_id).first()
+                                              UserTicket.ticket_id == request.ticket_id,
+                                              UserTicket.expired_date >= today).first()
     if exists:
         raise HTTPException(status_code=ERROR_DIC[ERROR_BAD_REQUEST][0],
                             detail=ERROR_BAD_REQUEST)
