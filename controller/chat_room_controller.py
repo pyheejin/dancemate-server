@@ -40,6 +40,7 @@ def get_chat_room(type, session, g):
                                   contains_eager(ChatRoom.chat_room_user).contains_eager(ChatRoomUser.user),
                         ).order_by(Chat.created_at.desc(),
                                    Chat.type.asc(),
+                        ).group_by(ChatRoom.id,
                         ).all()
 
     response.result_data = {
@@ -230,6 +231,30 @@ def get_chat_room_detail(session, chat_room_id, g):
         if user.user_id == g.id:
             is_notice = user.is_notice
 
+    if chat_room.type == 50:
+        course_users = session.query(UserCourse
+                            ).outerjoin(User,
+                                        and_(UserCourse.user_id == User.id,
+                                             User.status == constant.STATUS_ACTIVE)
+                            ).outerjoin(Course,
+                                        and_(UserCourse.course_id == Course.id,
+                                             Course.status == constant.STATUS_ACTIVE)
+                            ).outerjoin(Lesson,
+                                        and_(Course.lesson_id == Lesson.id,
+                                             Course.status == constant.STATUS_ACTIVE)
+                            ).filter(Lesson.id == chat_room.lesson_id
+                            ).options(contains_eager(UserCourse.user),
+                                      contains_eager(UserCourse.course),
+                                      contains_eager(UserCourse.course
+                                            ).contains_eager(Course.lesson),
+                            ).group_by(UserCourse.user_id,
+                            ).all()
+        users = lesson_reserve_users_schema.dump(course_users)
+        dancer = user_schema.dump(chat_room.lesson.dancer)
+    else:
+        users = None
+        dancer = None
+
     response.result_data = {
         'chat_room': chat_room_schema.dump(chat_room),
         'chats': result,
@@ -237,6 +262,8 @@ def get_chat_room_detail(session, chat_room_id, g):
         'lesson': simple_lesson_schema.dump(chat_room.lesson),
         'is_notice': is_notice,
         'login_user_id': g.id,
+        'dancer': dancer,
+        'reserve_users': users,
     }
     return response
 

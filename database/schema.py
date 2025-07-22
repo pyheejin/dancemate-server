@@ -49,6 +49,17 @@ class SimpleLessonListSchema(Schema):
 simple_lesson_schema = SimpleLessonListSchema(many=False)
 
 
+class LessonReserveUserSchema(Schema):
+    id = fields.Int()
+    title = fields.String()
+    image_url = fields.String()
+
+    user = fields.Nested(UserListSchema(), many=False)
+
+
+lesson_reserve_users_schema = LessonReserveUserSchema(many=True)
+
+
 class SimpleCourseListSchema(Schema):
     id = fields.Int()
     title = fields.String()

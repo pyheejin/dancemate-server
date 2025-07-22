@@ -31,7 +31,7 @@ class User(Base):
 
     dancer_lesson = relationship('Lesson', back_populates='dancer')
     search_keyword = relationship('SearchKeyword', back_populates='user')
-    reserve_course = relationship('UserCourse', back_populates='reserve')
+    reserve_course = relationship('UserCourse', back_populates='user')
     mate_ticket = relationship('UserTicket', back_populates='mate')
     dancer_ticket = relationship('Ticket', back_populates='dancer')
     user_course_like = relationship('UserCourseLike', back_populates='user')
@@ -211,7 +211,7 @@ class UserCourse(Base):
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
-    reserve = relationship('User', back_populates='reserve_course')
+    user = relationship('User', back_populates='reserve_course')
     course = relationship('Course', back_populates='user_course')
     review = relationship('Review', back_populates='user_course')
 
