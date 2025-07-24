@@ -200,6 +200,23 @@ class UserCourseSchema(Schema):
     course = fields.Nested(CourseSchema(), many=False)
 
 
+class SimpleUserDetailSchema(Schema):
+    id = fields.Int()
+    email = fields.String()
+    nickname = fields.String()
+    introduction = fields.String()
+    image_url = fields.String()
+
+
+simple_user_detail_schema = SimpleUserDetailSchema(many=False)
+
+
+class SimpleUserTicketSchema(Schema):
+    id = fields.Int()
+
+    mate = fields.Nested(SimpleUserDetailSchema(), many=False)
+
+
 class TicketSchema(Schema):
     id = fields.Int()
     status = fields.Int()
@@ -227,21 +244,11 @@ class UserTicketSchema(Schema):
     created_at = fields.DateTime('%Y-%m-%d')
 
     ticket = fields.Nested(TicketSchema(), many=False)
+    mate = fields.Nested(UserListSchema(), many=False)
 
 
 user_tickets_schema = UserTicketSchema(many=True)
 user_ticket_schema = UserTicketSchema(many=False)
-
-
-class SimpleUserDetailSchema(Schema):
-    id = fields.Int()
-    email = fields.String()
-    nickname = fields.String()
-    introduction = fields.String()
-    image_url = fields.String()
-
-
-simple_user_detail_schema = SimpleUserDetailSchema(many=False)
 
 
 class UserProfileSchema(Schema):
