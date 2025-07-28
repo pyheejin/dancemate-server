@@ -1,8 +1,8 @@
 from dateutil.utils import today
 from fastapi import HTTPException
-from sqlalchemy import and_
+from sqlalchemy import and_, between
 from sqlalchemy.orm import contains_eager
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from config.constant import *
 from database.models import *
@@ -100,41 +100,90 @@ def post_ticket_detail_expired(request, session, g):
     return response
 
 
-def get_ticket_sales(session, g):
+def get_ticket_sales(year, month, session, g):
     response = DefaultModel()
+
+    filter_list = []
+
+    if year > 0 and month > 0:
+        start_date = datetime.strptime(f'{year}-{month}-01', '%Y-%m-%d')
+        end_date = start_date + timedelta(days=30)
+        filter_list.append(between(UserTicket.created_at, start_date, end_date))
 
     tickets = session.query(UserTicket
                     ).outerjoin(User, UserTicket.user_id == User.id,
                     ).outerjoin(Ticket, and_(Ticket.id == UserTicket.ticket_id,
                                              Ticket.status == constant.STATUS_ACTIVE),
                     ).filter(Ticket.user_id == g.id,
+                             *filter_list
                     ).options(contains_eager(UserTicket.ticket),
                               contains_eager(UserTicket.mate),
                     ).order_by(UserTicket.created_at.desc()
                     ).all()
 
     result = []
-    for user_ticket in user_tickets_schema.dump(tickets):
-        if not next((e for e in result if e['date'] == user_ticket['created_at']), None):
-            result.append({
-                'date': user_ticket['created_at'],
-                'ticket_list': [],
-            })
 
-    for user_ticket in user_tickets_schema.dump(tickets):
-        if next((e for e in result if e['date'] == user_ticket['created_at']), None):
-            ticket = {
-                'dancer': {
-                    'nickname': user_ticket['ticket']['dancer']['nickname'],
-                    'email': user_ticket['ticket']['dancer']['email'],
-                    'image_url': user_ticket['ticket']['dancer']['image_url'],
-                },
-                'count': f"{user_ticket['ticket']['count']}회권",
-                'price': format(user_ticket['ticket']['price'], ',d'),
-                'remain_count': user_ticket['remain_count'],
-                'expired_date': user_ticket['expired_date'],
-            }
-            next((e for e in result if e['date'] == user_ticket['created_at']))['ticket_list'].append(ticket)
+    if year > 0 and month > 0:
+        for user_ticket in user_tickets_schema.dump(tickets):
+            if not next((e for e in result if e['date'] == user_ticket['created_at']), None):
+                result.append({
+                    'date': user_ticket['created_at'],
+                    'ticket_list': [],
+                })
+
+        for user_ticket in user_tickets_schema.dump(tickets):
+            if next((e for e in result if e['date'] == user_ticket['created_at']), None):
+                ticket = {
+                    'mate': {
+                        'nickname': user_ticket['mate']['nickname'],
+                        'email': user_ticket['mate']['email'],
+                        'image_url': user_ticket['mate']['image_url'],
+                    },
+                    'count': f"{user_ticket['ticket']['count']}회권",
+                    'price': format(user_ticket['ticket']['price'], ',d'),
+                    'remain_count': user_ticket['remain_count'],
+                    'expired_date': user_ticket['expired_date'],
+                    'created_at': user_ticket['created_at']
+                }
+                next((e for e in result if e['date'] == user_ticket['created_at']))['ticket_list'].append(ticket)
+    else:
+        for data in user_tickets_schema.dump(tickets):
+            if not next((e for e in result if e['year'] == data['created_at'].split('-')[0]), None):
+                result.append({
+                    'year': data['created_at'].split('-')[0],
+                    'month_list': [],
+                })
+
+        for data in user_tickets_schema.dump(tickets):
+            year = data['created_at'].split('-')[0]
+            month = data['created_at'].split('-')[1]
+
+            if len(result) > 0:
+                for i in result:
+                    if year == i['year']:
+                        if len(i['month_list']) == 0:
+                            month_data = {
+                                'month': month,
+                                'total_price': 0
+                            }
+                            i['month_list'].append(month_data)
+                        else:
+                            if not next((e for e in i['month_list'] if e['month'] == month), None):
+                                month_data = {
+                                    'month': month,
+                                    'total_price': 0
+                                }
+                                i['month_list'].append(month_data)
+
+        for data in user_tickets_schema.dump(tickets):
+            year = data['created_at'].split('-')[0]
+            month = data['created_at'].split('-')[1]
+            if len(result) > 0:
+                for i in result:
+                    if year == i['year']:
+                        for j in i['month_list']:
+                            if j['month'] == month:
+                                j['total_price'] += data['ticket']['price']
 
     response.result_data = {
         'count': len(tickets),

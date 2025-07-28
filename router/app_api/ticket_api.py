@@ -1,6 +1,4 @@
-from typing import Optional, List
-
-from PIL.ImageChops import constant
+from typing import Optional
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -125,11 +123,15 @@ def put_ticket_detail(ticket_id: int,
 
 
 @router.get('/sales', tags=['ticket'], summary='티켓 판매 내역', dependencies=[Depends(get_current_user)])
-def get_ticket_sales(session: Session = Depends(db.session),
+def get_ticket_sales(year: int = 0,
+                     month: int = 0,
+                     session: Session = Depends(db.session),
                      g: User = Depends(get_current_user)):
     result_msg = '티켓 판매 내역'
     try:
-        response = ticket_controller.get_ticket_sales(session=session,
+        response = ticket_controller.get_ticket_sales(year=year,
+                                                      month=month,
+                                                      session=session,
                                                       g=g)
     except HTTPException as e:
         print(f'error: {e.detail}')
