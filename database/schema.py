@@ -233,6 +233,15 @@ tickets_schema = TicketSchema(many=True)
 ticket_schema = TicketSchema(many=False)
 
 
+class PaymentSchema(Schema):
+    id = fields.Int()
+    status = fields.Int()
+    price = fields.Int()
+    data = fields.String()
+    method = fields.Int()
+    user_ticket_id = fields.Int()
+
+
 class UserTicketSchema(Schema):
     id = fields.Int()
     status = fields.Int()
@@ -245,6 +254,7 @@ class UserTicketSchema(Schema):
 
     ticket = fields.Nested(TicketSchema(), many=False)
     mate = fields.Nested(UserListSchema(), many=False)
+    payment = fields.Nested(PaymentSchema(), many=False)
 
 
 user_tickets_schema = UserTicketSchema(many=True)

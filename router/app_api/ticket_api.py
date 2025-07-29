@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from config import constant
 from config.common import error_response, get_current_user
 from database.database import db
 from database.models import User
@@ -126,13 +127,17 @@ def put_ticket_detail(ticket_id: int,
 def get_ticket_sales(year: int = 0,
                      month: int = 0,
                      session: Session = Depends(db.session),
-                     g: User = Depends(get_current_user)):
+                     g: User = Depends(get_current_user),
+                     pageSize: Optional[int] = constant.DEFAULT_PAGE_SIZE,
+                     page: Optional[int] = constant.DEFAULT_PAGE):
     result_msg = '티켓 판매 내역'
     try:
         response = ticket_controller.get_ticket_sales(year=year,
                                                       month=month,
                                                       session=session,
-                                                      g=g)
+                                                      g=g,
+                                                      pageSize=pageSize,
+                                                      page=page)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()

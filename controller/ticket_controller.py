@@ -100,7 +100,7 @@ def post_ticket_detail_expired(request, session, g):
     return response
 
 
-def get_ticket_sales(year, month, session, g):
+def get_ticket_sales(year, month, session, g, page, pageSize):
     response = DefaultModel()
 
     filter_list = []
@@ -112,14 +112,16 @@ def get_ticket_sales(year, month, session, g):
 
     tickets = session.query(UserTicket
                     ).outerjoin(User, UserTicket.user_id == User.id,
+                    ).outerjoin(Payment, Payment.user_ticket_id == UserTicket.id,
                     ).outerjoin(Ticket, and_(Ticket.id == UserTicket.ticket_id,
                                              Ticket.status == constant.STATUS_ACTIVE),
                     ).filter(Ticket.user_id == g.id,
                              *filter_list
                     ).options(contains_eager(UserTicket.ticket),
                               contains_eager(UserTicket.mate),
+                              contains_eager(UserTicket.payment),
                     ).order_by(UserTicket.created_at.desc()
-                    ).all()
+                    ).offset(pageSize * (page - 1)).limit(pageSize).all()
 
     result = []
 
@@ -143,7 +145,8 @@ def get_ticket_sales(year, month, session, g):
                     'price': format(user_ticket['ticket']['price'], ',d'),
                     'remain_count': user_ticket['remain_count'],
                     'expired_date': user_ticket['expired_date'],
-                    'created_at': user_ticket['created_at']
+                    'created_at': user_ticket['created_at'],
+                    'payment': user_ticket['payment']
                 }
                 next((e for e in result if e['date'] == user_ticket['created_at']))['ticket_list'].append(ticket)
     else:

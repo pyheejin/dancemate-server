@@ -140,8 +140,8 @@ class Payment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
-    user_id = Column(Integer, ForeignKey('user.id'), comment='')
-    user_ticket_id = Column(Integer, ForeignKey('user_ticket.id'), comment='')
+    user_id = Column(Integer, ForeignKey('user.id'), comment='유저 id')
+    user_ticket_id = Column(Integer, ForeignKey('user_ticket.id'), comment='구매 티켓 id')
     price = Column(Integer, comment='결제 금액')
     method = Column(Integer, comment='결제 방법(1:카드, 2:무통장, 3:간편결제)')
     data = Column(Text, comment='결제 데이터')
