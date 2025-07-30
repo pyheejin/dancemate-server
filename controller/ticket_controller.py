@@ -110,22 +110,24 @@ def get_ticket_sales(year, month, session, g, page, pageSize):
         end_date = start_date + timedelta(days=30)
         filter_list.append(between(UserTicket.created_at, start_date, end_date))
 
-    tickets = session.query(UserTicket
-                    ).outerjoin(User, UserTicket.user_id == User.id,
-                    ).outerjoin(Payment, Payment.user_ticket_id == UserTicket.id,
-                    ).outerjoin(Ticket, and_(Ticket.id == UserTicket.ticket_id,
-                                             Ticket.status == constant.STATUS_ACTIVE),
-                    ).filter(Ticket.user_id == g.id,
-                             *filter_list
-                    ).options(contains_eager(UserTicket.ticket),
-                              contains_eager(UserTicket.mate),
-                              contains_eager(UserTicket.payment),
-                    ).order_by(UserTicket.created_at.desc()
-                    ).offset(pageSize * (page - 1)).limit(pageSize).all()
+
 
     result = []
 
     if year > 0 and month > 0:
+        tickets = session.query(UserTicket
+                        ).outerjoin(User, UserTicket.user_id == User.id,
+                        ).outerjoin(Payment, Payment.user_ticket_id == UserTicket.id,
+                        ).outerjoin(Ticket, and_(Ticket.id == UserTicket.ticket_id,
+                                                 Ticket.status == constant.STATUS_ACTIVE),
+                        ).filter(Ticket.user_id == g.id,
+                                 *filter_list
+                        ).options(contains_eager(UserTicket.ticket),
+                                  contains_eager(UserTicket.mate),
+                                  contains_eager(UserTicket.payment),
+                        ).order_by(UserTicket.created_at.desc()
+                        ).offset(pageSize * (page - 1)).limit(pageSize).all()
+
         for user_ticket in user_tickets_schema.dump(tickets):
             if not next((e for e in result if e['date'] == user_ticket['created_at']), None):
                 result.append({
@@ -150,6 +152,19 @@ def get_ticket_sales(year, month, session, g, page, pageSize):
                 }
                 next((e for e in result if e['date'] == user_ticket['created_at']))['ticket_list'].append(ticket)
     else:
+        tickets = session.query(UserTicket
+                        ).outerjoin(User, UserTicket.user_id == User.id,
+                        ).outerjoin(Payment, Payment.user_ticket_id == UserTicket.id,
+                        ).outerjoin(Ticket, and_(Ticket.id == UserTicket.ticket_id,
+                                                 Ticket.status == constant.STATUS_ACTIVE),
+                        ).filter(Ticket.user_id == g.id,
+                                 *filter_list
+                        ).options(contains_eager(UserTicket.ticket),
+                                  contains_eager(UserTicket.mate),
+                                  contains_eager(UserTicket.payment),
+                        ).order_by(UserTicket.created_at.desc()
+                        ).all()
+
         for data in user_tickets_schema.dump(tickets):
             if not next((e for e in result if e['year'] == data['created_at'].split('-')[0]), None):
                 result.append({
