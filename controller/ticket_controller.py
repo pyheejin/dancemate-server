@@ -203,6 +203,10 @@ def get_ticket_sales(year, month, session, g, page, pageSize):
                             if j['month'] == month:
                                 j['total_price'] += data['ticket']['price']
 
+        start_index = (page - 1) * constant.DEFAULT_PAGE_SIZE
+        end_index = page * constant.DEFAULT_PAGE_SIZE
+        result = result[start_index:end_index]
+
     response.result_data = {
         'count': len(tickets),
         'tickets': result,
