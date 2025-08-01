@@ -19,12 +19,14 @@ router = APIRouter(
 
 class PostUserJoinModel(BaseModel):
     type: int = constant.USER_TYPE_MATE
+    method: int = constant.USER_METHOD_DEFAULT
     name: str
     nickname: str
     email: str
     password: str
     phone: Optional[str]
     introduction: Optional[str]
+    image_url: Optional[str]
 
 
 class PostUserProfileModel(BaseModel):

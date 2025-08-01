@@ -141,12 +141,14 @@ def post_user_join(session, request):
 
     user = User()
     user.type = request.type
+    user.method = request.method
     user.email = request.email
     user.password = jwt.get_password_hash(request.password)
     user.nickname = request.nickname
     user.name = request.name
     user.phone = request.phone
     user.introduction = request.introduction
+    user.image_url = request.image_url
 
     if request.type == constant.USER_TYPE_MATE:
         user.expired_day = 0
@@ -181,19 +183,23 @@ def post_user_login(session, request):
     user = session.query(User).filter(User.email == request.username).first()
     if user is not None:
         jwt = JWT()
-        verify = jwt.verify_password(request.password, user.password)
-        if verify:
-            access_token = jwt.create_access_token(token_payload_schema.dump(user))
-            refresh_token = jwt.create_refresh_token(token_payload_schema.dump(user))
+        if user.method == constant.USER_METHOD_DEFAULT:
+            verify = jwt.verify_password(request.password, user.password)
+            if not verify:
+                raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                                    detail=ERROR_DATA_NOT_EXIST)
 
-            user.access_token = access_token
-            user.refresh_token = refresh_token
-            user.last_login_date = datetime.now()
+        access_token = jwt.create_access_token(token_payload_schema.dump(user))
+        refresh_token = jwt.create_refresh_token(token_payload_schema.dump(user))
 
-            response.user_id = user.id
-            response.type = user.type
-            response.access_token = access_token
-            response.refresh_token = refresh_token
+        user.access_token = access_token
+        user.refresh_token = refresh_token
+        user.last_login_date = datetime.now()
+
+        response.user_id = user.id
+        response.type = user.type
+        response.access_token = access_token
+        response.refresh_token = refresh_token
     return response
 
 
