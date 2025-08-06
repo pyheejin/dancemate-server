@@ -1,4 +1,6 @@
-from sqlalchemy import and_
+import requests
+
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import contains_eager
 from fastapi import HTTPException
 
@@ -149,6 +151,8 @@ def post_user_join(session, request):
     user.phone = request.phone
     user.introduction = request.introduction
     user.image_url = request.image_url
+    user.apple_token = request.apple_token
+    user.apple_identifier = request.apple_identifier
 
     if request.type == constant.USER_TYPE_MATE:
         user.expired_day = 0
@@ -180,7 +184,8 @@ def post_user_join(session, request):
 def post_user_login(session, request):
     response = DefaultLoginModel()
 
-    user = session.query(User).filter(User.email == request.username).first()
+    user = session.query(User).filter(or_(User.email == request.username,
+                                          User.apple_identifier == request.username)).first()
     if user is not None:
         jwt = JWT()
         if user.method == constant.USER_METHOD_DEFAULT:
@@ -200,6 +205,9 @@ def post_user_login(session, request):
         response.type = user.type
         response.access_token = access_token
         response.refresh_token = refresh_token
+    else:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_UNAUTHORIZED][0],
+                            detail=ERROR_UNAUTHORIZED)
     return response
 
 

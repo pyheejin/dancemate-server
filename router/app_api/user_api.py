@@ -27,6 +27,8 @@ class PostUserJoinModel(BaseModel):
     phone: Optional[str]
     introduction: Optional[str]
     image_url: Optional[str]
+    apple_token: Optional[str]
+    apple_identifier: Optional[str]
 
 
 class PostUserProfileModel(BaseModel):
@@ -41,6 +43,10 @@ class PostUserProfileImageModel(BaseModel):
     def as_form(cls,
                 image_url: Optional[UploadFile] = File(None)):
         return cls(image_url=image_url)
+
+
+class PostUserLogoutModel(BaseModel):
+    access_token: str
 
 
 @router.post('/join', tags=['user'], summary='회원가입')
@@ -257,5 +263,3 @@ def post_user_login(request: OAuth2PasswordRequestForm = Depends(),
     finally:
         session.close()
     return response
-
-
