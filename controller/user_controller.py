@@ -131,6 +131,24 @@ def get_user_detail(session, g, user_id):
     return response
 
 
+def put_user_detail(session, request, g):
+    response = DefaultModel()
+
+    user = session.query(User).filter(User.id == g.id).first()
+    if user is None:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DATA_NOT_EXIST)
+
+    user.type = request.type
+    if request.type == constant.USER_TYPE_DANCER:
+        user.expired_day = 30
+    user.name = request.name
+    user.nickname = request.nickname
+    user.phone = request.phone
+    user.introduction = request.introduction
+    return response
+
+
 def post_user_join(session, request):
     response = DefaultModel()
 

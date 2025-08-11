@@ -263,7 +263,10 @@ user_ticket_schema = UserTicketSchema(many=False)
 
 class UserProfileSchema(Schema):
     id = fields.Int()
+    type = fields.Int()
+    phone = fields.String()
     email = fields.String()
+    name = fields.String()
     nickname = fields.String()
     introduction = fields.String()
     image_url = fields.String()
@@ -277,6 +280,8 @@ user_profile_schema = UserProfileSchema(many=False)
 
 class UserDetailSchema(Schema):
     id = fields.Int()
+    type = fields.Int()
+    phone = fields.String()
     email = fields.String()
     nickname = fields.String()
     introduction = fields.String()

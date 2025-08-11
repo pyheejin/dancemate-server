@@ -45,6 +45,14 @@ class PostUserProfileImageModel(BaseModel):
         return cls(image_url=image_url)
 
 
+class PutUserDetailModel(BaseModel):
+    type: int = constant.USER_TYPE_MATE
+    name: str
+    nickname: str
+    phone: Optional[str]
+    introduction: Optional[str]
+
+
 class PostUserLogoutModel(BaseModel):
     access_token: str
 
@@ -210,6 +218,38 @@ def get_user_detail(user_id: int,
     result_msg = '유저 상세'
     try:
         response = user_controller.get_user_detail(user_id=user_id,
+                                                   g=g,
+                                                   session=session)
+    except HTTPException as e:
+        print(f'error: {e.detail}')
+        session.rollback()
+        response = None
+        response = error_response(response, e.detail, e.status_code, result_msg)
+    except Exception as e:
+        print(e)
+        session.rollback()
+
+        response = DefaultModel()
+        response.result_msg = f'{result_msg} 실패'
+        response.result_code = 210
+    else:
+        session.commit()
+        if response is None:
+            response = DefaultModel()
+        if response.result_msg is not None:
+            response.result_msg = f'{result_msg} 성공'
+    finally:
+        session.close()
+    return response
+
+
+@router.put('', tags=['user'], summary='유저 수정', dependencies=[Depends(get_current_user)])
+def put_user_detail(request: PutUserDetailModel,
+                    g: User = Depends(get_current_user),
+                    session: Session = Depends(db.session)):
+    result_msg = '유저 수정'
+    try:
+        response = user_controller.put_user_detail(request=request,
                                                    g=g,
                                                    session=session)
     except HTTPException as e:
