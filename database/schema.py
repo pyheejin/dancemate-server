@@ -392,7 +392,7 @@ class ChatRoomSchema(Schema):
             if datetime.today().date() <= obj.chat[0].created_at.date():
                 return obj.chat[0].created_at.strftime('%H:%M')
             else:
-                return obj.chat[0].created_at.strftime('%Y-%m-%d')
+                return obj.chat[0].created_at.strftime('%m월 %d일')
         else:
             return ''
 
