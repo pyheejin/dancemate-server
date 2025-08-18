@@ -307,3 +307,7 @@ pip-selfcheck.json
 config/config.py
 .DS_Store
 static/
+*.cer
+*.p8
+*.certSigningRequest
+dance-mate-fc3af-firebase-adminsdk-fbsvc-6c05bb4dab.json
