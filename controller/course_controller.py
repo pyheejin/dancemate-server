@@ -5,6 +5,7 @@ from sqlalchemy.orm import contains_eager
 from datetime import timedelta
 
 from config.constant import *
+from config.send_fcm import FCM
 from database.models import *
 from database.schema import *
 from database.base_model import DefaultModel
@@ -159,6 +160,13 @@ def post_course_detail_reserve(course_id, request, session, g):
                         ).filter(UserTicket.id == request.user_ticket_id
                         ).first()
     user_ticket.remain_count -= 1
+
+    push_data = {
+        'title': '수업 예약 완료되었습니다.',
+        'body': ''
+    }
+    fcm = FCM()
+    fcm.send(g.fcm_token, push_data)
     return response
 
 

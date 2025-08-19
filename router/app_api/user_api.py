@@ -29,6 +29,7 @@ class PostUserJoinModel(BaseModel):
     image_url: Optional[str]
     apple_token: Optional[str]
     apple_identifier: Optional[str]
+    fcm_token: str
 
 
 class PostUserProfileModel(BaseModel):

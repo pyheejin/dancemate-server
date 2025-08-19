@@ -3,6 +3,7 @@ from sqlalchemy import and_
 from sqlalchemy.orm import contains_eager
 from datetime import timedelta
 
+from config.send_fcm import FCM
 from config.constant import *
 from database.models import *
 from database.schema import *
@@ -44,6 +45,13 @@ def post_payment(session, request, g):
     payment.user_id = g.id
     payment.user_ticket_id = user_ticket.id
     payment.price = ticket.price
+
+    push_data = {
+        'title': '티켓 결제가 완료되었습니다.',
+        'body': ''
+    }
+    fcm = FCM()
+    fcm.send(g.fcm_token, push_data)
 
     response.result_data = {
         'payment': payment_detail_schema.dump(payment)

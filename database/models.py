@@ -29,6 +29,7 @@ class User(Base):
     apple_token = Column(Text, comment='애플 로그인시 토큰')
     apple_identifier = Column(Text, comment='애플 고유 식별자')
     expired_day = Column(Integer, default=30, comment='티켓 유효기간')
+    fcm_token = Column(Text, comment='')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 

@@ -171,6 +171,7 @@ def post_user_join(session, request):
     user.image_url = request.image_url
     user.apple_token = request.apple_token
     user.apple_identifier = request.apple_identifier
+    user.fcm_token = request.fcm_token
 
     if request.type == constant.USER_TYPE_MATE:
         user.expired_day = 0
