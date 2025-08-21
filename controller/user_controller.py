@@ -218,12 +218,14 @@ def post_user_login(session, request):
 
         user.access_token = access_token
         user.refresh_token = refresh_token
+        user.fcm_token = request.client_secret
         user.last_login_date = datetime.now()
 
         response.user_id = user.id
         response.type = user.type
         response.access_token = access_token
         response.refresh_token = refresh_token
+
     else:
         raise HTTPException(status_code=ERROR_DIC[ERROR_UNAUTHORIZED][0],
                             detail=ERROR_UNAUTHORIZED)
@@ -309,5 +311,24 @@ def get_user_course(session, g):
     response.result_data = {
         'result_count': len(courses),
         'courses': courses_schema.dump(courses),
+    }
+    return response
+
+
+def get_user_notification(session, g):
+    response = DefaultModel()
+
+    notices = session.query(UserNotification
+                    ).outerjoin(User,
+                                and_(User.id == UserNotification.user_id,
+                                     User.status == constant.STATUS_ACTIVE)
+                    ).filter(User.id == g.id
+                    ).options(contains_eager(UserNotification.user),
+                    ).order_by(UserNotification.created_at.desc()
+                    ).all()
+
+    response.result_data = {
+        'result_count': len(notices),
+        'notices': user_notification_schema.dump(notices),
     }
     return response

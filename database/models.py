@@ -47,6 +47,7 @@ class User(Base):
     chat = relationship('Chat', back_populates='user')
     chat_room_user = relationship('ChatRoomUser', back_populates='user')
     room_notification = relationship('ChatRoomNotification', back_populates='user')
+    user_notification = relationship('UserNotification', back_populates='user')
 
 
 class Lesson(Base):
@@ -328,3 +329,21 @@ class ChatRoomNotification(Base):
 
     user = relationship('User', back_populates='room_notification')
     room = relationship('ChatRoom', back_populates='room_notification')
+
+
+# 알림
+class UserNotification(Base):
+    __tablename__ = 'user_notification'
+
+    id = Column(Integer, primary_key=True, index=True)
+    status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
+    user_id = Column(Integer, ForeignKey('user.id'), comment='')
+    chat_room_id = Column(Integer, default=1, comment='수업 관련 알림(1:활성화, 0:비활성화)')
+    lesson_id = Column(Integer, default=1, comment='티켓 관련 알림(1:활성화, 0:비활성화)')
+    ticket_id = Column(Integer, default=1, comment='커뮤니티 관련 알림(1:활성화, 0:비활성화)')
+    title = Column(String(255), comment='알림 제목')
+    description = Column(Text, comment='알림 내용')
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    user = relationship('User', back_populates='user_notification')

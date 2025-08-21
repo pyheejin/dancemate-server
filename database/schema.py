@@ -423,3 +423,18 @@ class ChatRoomDetailSchema(Schema):
 
 
 chat_room_schema = ChatRoomDetailSchema(many=False)
+
+
+class UserNotificationSchema(Schema):
+    id = fields.Int()
+    status = fields.Int()
+    user_id = fields.Int()
+    lesson_id = fields.Int()
+    ticket_id = fields.Int()
+    chat_room_id = fields.Int()
+    title = fields.String()
+    description = fields.String()
+    created_at = fields.DateTime('%Y-%m-%d %H:%M:%S')
+
+
+user_notification_schema = UserNotificationSchema(many=True)
