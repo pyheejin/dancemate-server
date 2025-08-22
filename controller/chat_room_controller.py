@@ -13,6 +13,25 @@ from database.base_model import DefaultModel
 def get_chat_room(type, session, g):
     response = DefaultModel()
 
+    chat_room_ids = []
+    chat_room_id_query = session.query(ChatRoom
+                                ).outerjoin(ChatRoomUser,
+                                            and_(ChatRoomUser.chat_room_id == ChatRoom.id,
+                                                 ChatRoomUser.status == constant.STATUS_ACTIVE)
+                                ).outerjoin(User,
+                                            and_(ChatRoomUser.user_id == User.id,
+                                                 User.status == constant.STATUS_ACTIVE)
+                                ).filter(ChatRoom.status == constant.STATUS_ACTIVE,
+                                         ChatRoom.type == type,
+                                         ChatRoom.user_id == g.id,
+                                ).options(contains_eager(ChatRoom.chat_room_user),
+                                          contains_eager(ChatRoom.chat_room_user
+                                                         ).contains_eager(ChatRoomUser.user),
+                                ).all()
+
+    for room in chat_room_id_query:
+        chat_room_ids.append(room.id)
+
     chat_rooms = session.query(ChatRoom
                         ).outerjoin(Lesson,
                                     and_(ChatRoom.lesson_id == Lesson.id,
@@ -30,17 +49,15 @@ def get_chat_room(type, session, g):
                         ).outerjoin(User,
                                     and_(ChatRoomUser.user_id == User.id,
                                          User.status == constant.STATUS_ACTIVE)
-                        ).filter(ChatRoom.status == constant.STATUS_ACTIVE,
-                                 ChatRoom.type == type,
-                                 ChatRoomUser.user_id == g.id,
+                        ).filter(ChatRoom.id.in_(chat_room_ids),
                         ).options(contains_eager(ChatRoom.lesson),
                                   contains_eager(ChatRoom.chat),
                                   contains_eager(ChatRoom.chat_room_user),
+                                  contains_eager(ChatRoom.chat_room_user
+                                                 ).contains_eager(ChatRoomUser.user),
                                   contains_eager(ChatRoom.room_notification),
-                                  contains_eager(ChatRoom.chat_room_user).contains_eager(ChatRoomUser.user),
-                        ).order_by(Chat.created_at.desc(),
-                                   Chat.type.asc(),
-                        ).group_by(ChatRoom.id,
+                        ).order_by(Chat.type.asc(),
+                                   Chat.id.desc(),
                         ).all()
 
     response.result_data = {
