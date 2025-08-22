@@ -327,8 +327,41 @@ def get_user_notification(session, g):
                     ).order_by(UserNotification.created_at.desc()
                     ).all()
 
+    result = []
+    for user_notification in user_notification_schema.dump(notices):
+        date = datetime.strptime(user_notification['created_at'], '%Y-%m-%d').date()
+        today = datetime.today().date()
+
+        if date == today:
+            notice_date = '오늘'
+        else:
+            notice_date = date
+
+        if not next((e for e in result if e['date'] == notice_date), None):
+            result.append({
+                'date': notice_date,
+                'notification_list': [],
+            })
+
+    for user_notification in user_notification_schema.dump(notices):
+        date = datetime.strptime(user_notification['created_at'], '%Y-%m-%d').date()
+        today = datetime.today().date()
+
+        if date == today:
+            notice_date = '오늘'
+        else:
+            notice_date = date
+
+        if next((e for e in result if e['date'] == notice_date), None):
+            notification = {
+                'id': user_notification['id'],
+                'title': user_notification['title'],
+                'description': user_notification['description'],
+                'created_at': user_notification['created_at'],
+            }
+            next((e for e in result if e['date'] == notice_date))['notification_list'].append(notification)
+
     response.result_data = {
-        'result_count': len(notices),
-        'notices': user_notification_schema.dump(notices),
+        'notices': result,
     }
     return response

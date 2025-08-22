@@ -7,8 +7,8 @@ from starlette.routing import Mount
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 
-from database.database import db
 from config.config import conf
+from database.database import db
 from router import app_api, admin_api
 
 

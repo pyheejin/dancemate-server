@@ -434,7 +434,7 @@ class UserNotificationSchema(Schema):
     chat_room_id = fields.Int()
     title = fields.String()
     description = fields.String()
-    created_at = fields.DateTime('%Y-%m-%d %H:%M:%S')
+    created_at = fields.DateTime('%Y-%m-%d')
 
 
 user_notification_schema = UserNotificationSchema(many=True)
