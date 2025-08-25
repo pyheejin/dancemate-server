@@ -315,7 +315,7 @@ def get_user_course(session, g):
     return response
 
 
-def get_user_notification(session, g):
+def get_user_notification(session, g, page, pageSize):
     response = DefaultModel()
 
     notices = session.query(UserNotification
@@ -325,7 +325,7 @@ def get_user_notification(session, g):
                     ).filter(User.id == g.id
                     ).options(contains_eager(UserNotification.user),
                     ).order_by(UserNotification.created_at.desc()
-                    ).all()
+                    ).offset(pageSize * (page - 1)).limit(pageSize).all()
 
     result = []
     for user_notification in user_notification_schema.dump(notices):
@@ -362,6 +362,7 @@ def get_user_notification(session, g):
             next((e for e in result if e['date'] == notice_date))['notification_list'].append(notification)
 
     response.result_data = {
+        'count': len(notices),
         'notices': result,
     }
     return response

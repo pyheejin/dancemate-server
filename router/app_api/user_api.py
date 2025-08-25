@@ -214,11 +214,15 @@ def get_user_course(session: Session = Depends(db.session),
 
 @router.get('/notification', tags=['user'], summary='유저 알림 목록', dependencies=[Depends(get_current_user)])
 def get_user_notification(session: Session = Depends(db.session),
-                    g: User = Depends(get_current_user)):
+                          g: User = Depends(get_current_user),
+                          pageSize: Optional[int] = constant.DEFAULT_PAGE_SIZE,
+                          page: Optional[int] = constant.DEFAULT_PAGE):
     result_msg = '유저 알림 목록'
     try:
         response = user_controller.get_user_notification(session=session,
-                                                         g=g)
+                                                         g=g,
+                                                         page=page,
+                                                         pageSize=pageSize)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()

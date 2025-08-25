@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from config import constant
 from config.common import error_response, get_current_user
 from database.database import db
 from database.models import User
@@ -28,12 +29,16 @@ class PostChatModel(BaseModel):
 @router.get('', tags=['chat_room'], summary='채팅방 목록', dependencies=[Depends(get_current_user)])
 def get_chat_room(type: int,
                   session: Session = Depends(db.session),
-                  g: User = Depends(get_current_user)):
+                  g: User = Depends(get_current_user),
+                  pageSize: Optional[int] = constant.DEFAULT_PAGE_SIZE,
+                  page: Optional[int] = constant.DEFAULT_PAGE):
     result_msg = '채팅방 목록'
     try:
         response = chat_room_controller.get_chat_room(type=type,
                                                       session=session,
-                                                      g=g)
+                                                      g=g,
+                                                      pageSize=pageSize,
+                                                      page=page)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()

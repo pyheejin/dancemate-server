@@ -10,7 +10,7 @@ from database.schema import *
 from database.base_model import DefaultModel
 
 
-def get_chat_room(type, session, g):
+def get_chat_room(type, session, g, page, pageSize):
     response = DefaultModel()
 
     chat_room_ids = []
@@ -27,7 +27,7 @@ def get_chat_room(type, session, g):
                                 ).options(contains_eager(ChatRoom.chat_room_user),
                                           contains_eager(ChatRoom.chat_room_user
                                                          ).contains_eager(ChatRoomUser.user),
-                                ).all()
+                                ).offset(pageSize * (page - 1)).limit(pageSize).all()
 
     for room in chat_room_id_query:
         chat_room_ids.append(room.id)
