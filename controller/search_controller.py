@@ -84,12 +84,17 @@ def get_search(session, keyword, g, page, pageSize):
 
     # 최근 검색어에 추가
     if keyword != '':
-        search_keyword = SearchKeyword()
-        session.add(search_keyword)
+        keyword_exists = session.query(SearchKeyword
+                                ).filter(SearchKeyword.user_id == g.id,
+                                ).order_by(SearchKeyword.id.desc()).first()
 
-        search_keyword.type = 1
-        search_keyword.user_id = g.id,
-        search_keyword.keyword = keyword
+        if not keyword_exists or keyword_exists.keyword != keyword:
+            search_keyword = SearchKeyword()
+            session.add(search_keyword)
+
+            search_keyword.type = 1
+            search_keyword.user_id = g.id,
+            search_keyword.keyword = keyword
 
     response.result_data = {
         'result_count': len(course_id_query),
