@@ -2,6 +2,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from config import constant
 from config.common import error_response, get_current_user
 from database.database import db
 from database.models import User
@@ -47,12 +48,16 @@ def get_search_pre(session: Session = Depends(db.session),
 @router.get('', tags=['search'], summary='검색', dependencies=[Depends(get_current_user)])
 def get_search(session: Session = Depends(db.session),
                keyword: Optional[str] = None,
-               g: User = Depends(get_current_user)):
+               g: User = Depends(get_current_user),
+               pageSize: Optional[int] = constant.DEFAULT_PAGE_SIZE,
+               page: Optional[int] = constant.DEFAULT_PAGE):
     result_msg = '검색'
     try:
         response = search_controller.get_search(session=session,
                                                 keyword=keyword,
-                                                g=g)
+                                                g=g,
+                                                page=page,
+                                                pageSize=pageSize)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()

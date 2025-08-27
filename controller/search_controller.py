@@ -45,13 +45,13 @@ def get_search_pre(session, g):
     return response
 
 
-def get_search(session, keyword, g):
+def get_search(session, keyword, g, page, pageSize):
     response = DefaultModel()
 
     date_format = '%Y-%m-%d %H:%M:%S'
     today = datetime.strptime(datetime.now().date().strftime(date_format), date_format)
 
-    courses = session.query(Lesson
+    course_id_query = session.query(Lesson
                     ).outerjoin(Course,
                                 and_(Course.lesson_id == Lesson.id,
                                      Course.status == constant.STATUS_ACTIVE)
@@ -70,8 +70,17 @@ def get_search(session, keyword, g):
                                       User.nickname.like(f'%{keyword}%'))),
                     ).options(contains_eager(Lesson.course),
                               contains_eager(Lesson.dancer),
-                              contains_eager(Lesson.course).contains_eager(Course.like_user),
+                              contains_eager(Lesson.course
+                            ).contains_eager(Course.like_user),
                     ).all()
+
+    lesson_ids = []
+    for lesson in course_id_query:
+        lesson_ids.append(lesson.id)
+
+    courses = session.query(Lesson
+                    ).filter(Lesson.id.in_(lesson_ids)
+                    ).offset(pageSize * (page - 1)).limit(pageSize).all()
 
     # 최근 검색어에 추가
     if keyword != '':
@@ -83,7 +92,7 @@ def get_search(session, keyword, g):
         search_keyword.keyword = keyword
 
     response.result_data = {
-        'result_count': len(courses),
+        'result_count': len(course_id_query),
         'courses': lessons_schema.dump(courses),
     }
     return response
