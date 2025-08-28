@@ -14,19 +14,14 @@ def get_chat_room(type, session, g, page, pageSize):
     response = DefaultModel()
 
     chat_room_ids = []
-    chat_room_id_query = session.query(ChatRoom
-                                ).outerjoin(ChatRoomUser,
+    chat_room_id_query = session.query(ChatRoomUser
+                                ).outerjoin(ChatRoom,
                                             and_(ChatRoomUser.chat_room_id == ChatRoom.id,
-                                                 ChatRoomUser.status == constant.STATUS_ACTIVE)
-                                ).outerjoin(User,
-                                            and_(ChatRoomUser.user_id == User.id,
-                                                 User.status == constant.STATUS_ACTIVE)
-                                ).filter(ChatRoom.status == constant.STATUS_ACTIVE,
+                                                 ChatRoom.status == constant.STATUS_ACTIVE)
+                                ).filter(ChatRoomUser.status == constant.STATUS_ACTIVE,
                                          ChatRoom.type == type,
-                                         ChatRoom.user_id == g.id,
-                                ).options(contains_eager(ChatRoom.chat_room_user),
-                                          contains_eager(ChatRoom.chat_room_user
-                                                         ).contains_eager(ChatRoomUser.user),
+                                         ChatRoomUser.user_id == g.id,
+                                ).options(contains_eager(ChatRoomUser.room),
                                 ).offset(pageSize * (page - 1)).limit(pageSize).all()
 
     for room in chat_room_id_query:
@@ -61,7 +56,7 @@ def get_chat_room(type, session, g, page, pageSize):
                         ).all()
 
     response.result_data = {
-        'count': len(chat_rooms),
+        'count': len(chat_room_id_query),
         'chat_rooms': chat_rooms_schema.dump(chat_rooms),
         'login_user_id': g.id,
     }
