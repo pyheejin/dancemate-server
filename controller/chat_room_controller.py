@@ -24,8 +24,8 @@ def get_chat_room(type, session, g, page, pageSize):
                                 ).options(contains_eager(ChatRoomUser.room),
                                 ).offset(pageSize * (page - 1)).limit(pageSize).all()
 
-    for room in chat_room_id_query:
-        chat_room_ids.append(room.id)
+    for room_user in chat_room_id_query:
+        chat_room_ids.append(room_user.chat_room_id)
 
     chat_rooms = session.query(ChatRoom
                         ).outerjoin(Lesson,
