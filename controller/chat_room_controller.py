@@ -1,9 +1,10 @@
 from dateutil.utils import today
 from fastapi import HTTPException
-from sqlalchemy import and_
+from sqlalchemy import and_, or_, false
 from sqlalchemy.orm import contains_eager
 from datetime import timedelta
 
+from config.send_fcm import FCM
 from config.constant import *
 from database.models import *
 from database.schema import *
@@ -333,6 +334,14 @@ def post_chat_room_detail_chat(chat_room_id, request, session, g):
     chat.user_id = g.id
     chat.message = request.message
 
+    # 푸시 알림
+    push_data = {
+        'title': request.message,
+        'body': ''
+    }
+    fcm = FCM()
+    fcm.send(g.fcm_token, push_data)
+
     # 채팅방 알림
     room_notification_query = session.query(ChatRoomNotification
                                     ).filter(ChatRoomNotification.chat_room_id == chat_room_id,
@@ -341,15 +350,23 @@ def post_chat_room_detail_chat(chat_room_id, request, session, g):
     return response
 
 
-def post_chat_room_detail_check(chat_room_id, session, g):
+def post_chat_room_exists(request, session, g):
     response = DefaultModel()
 
     chat_room = session.query(ChatRoom
-                        ).filter(ChatRoom.id == chat_room_id,
+                        ).filter(or_(ChatRoom.user_id == request.user_id,
+                                     ChatRoom.user_id == g.id),
+                                 or_(ChatRoom.friend_id == request.user_id,
+                                     ChatRoom.friend_id == g.id),
                                  ChatRoom.status == constant.STATUS_ACTIVE).first()
-    if chat_room is None:
-        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
-                            detail=ERROR_DATA_NOT_EXIST)
+    result = False
+    chat_room_id = 0
+    if chat_room is not None:
+        result = True
+        chat_room_id = chat_room.id
 
-
+    response.result_data = {
+        'exists': result,
+        'chat_room_id': chat_room_id
+    }
     return response
