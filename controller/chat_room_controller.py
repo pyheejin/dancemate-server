@@ -335,12 +335,17 @@ def post_chat_room_detail_chat(chat_room_id, request, session, g):
     chat.message = request.message
 
     # 푸시 알림
-    push_data = {
-        'title': request.message,
-        'body': ''
-    }
-    fcm = FCM()
-    fcm.send(g.fcm_token, push_data)
+    room_notification = session.query(ChatRoomUser
+                                      ).filter(ChatRoomUser.chat_room_id == chat_room_id,
+                                               ChatRoomUser.user_id == g.id).first()
+    if room_notification is not None:
+        if room_notification.is_notice == constant.STATUS_ACTIVE:
+            push_data = {
+                'title': request.message,
+                'body': ''
+            }
+            fcm = FCM()
+            fcm.send(g.fcm_token, push_data)
 
     # 채팅방 알림
     room_notification_query = session.query(ChatRoomNotification
@@ -368,5 +373,30 @@ def post_chat_room_exists(request, session, g):
     response.result_data = {
         'exists': result,
         'chat_room_id': chat_room_id
+    }
+    return response
+
+
+def post_chat_room_detail_notice(chat_room_id, session, g):
+    response = DefaultModel()
+
+    chat_room = session.query(ChatRoom
+                        ).filter(ChatRoom.id == chat_room_id,
+                                 ChatRoom.status == constant.STATUS_ACTIVE).first()
+    if chat_room is None:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DATA_NOT_EXIST)
+
+    room_notification = session.query(ChatRoomUser
+                                ).filter(ChatRoomUser.chat_room_id == chat_room_id,
+                                         ChatRoomUser.user_id == g.id).first()
+    if room_notification is not None:
+        if room_notification.is_notice == constant.STATUS_ACTIVE:
+            room_notification.is_notice = constant.STATUS_INACTIVE
+        else:
+            room_notification.is_notice = constant.STATUS_ACTIVE
+
+    response.result_data = {
+        'is_notice': room_notification.is_notice
     }
     return response
