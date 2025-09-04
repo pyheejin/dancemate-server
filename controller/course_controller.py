@@ -209,9 +209,10 @@ def post_course_detail_like(session, course_id, g):
         raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
                             detail=ERROR_DATA_NOT_EXIST)
 
+    status = 0
+
     like_course_query = session.query(UserCourseLike
-                                ).filter(UserCourseLike.user_id == g.id,
-                                         UserCourseLike.status == constant.STATUS_ACTIVE)
+                                ).filter(UserCourseLike.user_id == g.id)
     # 처음 찜한 경우
     exists = like_course_query.filter(UserCourseLike.course_id == course_id).first()
     if exists is None:
@@ -219,13 +220,21 @@ def post_course_detail_like(session, course_id, g):
         like_course_list = like_course_query.all()
 
         user_course_like = UserCourseLike()
+        session.add(user_course_like)
+
+        user_course_like.status = constant.STATUS_ACTIVE
         user_course_like.order = len(like_course_list) + 1
         user_course_like.user_id = g.id
         user_course_like.course_id = course_id
 
-        session.add(user_course_like)
+        status = constant.STATUS_ACTIVE
     else:  # 이미 찜한 경우
-        exists.status = constant.STATUS_DELETED
+        if exists.status == constant.STATUS_ACTIVE:
+            exists.status = constant.STATUS_INACTIVE
+        else:
+            exists.status = constant.STATUS_ACTIVE
+
+        status = exists.status
 
         # 순서 조정
         order_query = like_course_query.filter(UserCourseLike.order > exists.order
@@ -233,7 +242,9 @@ def post_course_detail_like(session, course_id, g):
         for like_course in order_query:
             like_course.order -= 1
 
-    session.flush()
+    response.result_data = {
+        'status': status
+    }
     return response
 
 
@@ -242,11 +253,12 @@ def get_course_like(session, g):
 
     courses = session.query(Course
                     ).outerjoin(Lesson, Lesson.id == Course.lesson_id,
-                    ).outerjoin(UserCourseLike, UserCourseLike.course_id == Course.id,
+                    ).outerjoin(UserCourseLike,
+                                and_(UserCourseLike.course_id == Course.id,
+                                     UserCourseLike.status == constant.STATUS_ACTIVE),
                     ).outerjoin(User, User.id == UserCourseLike.user_id,
                     ).filter(Course.status == constant.STATUS_ACTIVE,
                              UserCourseLike.user_id == g.id,
-                             UserCourseLike.status == constant.STATUS_ACTIVE,
                     ).options(contains_eager(Course.lesson),
                               contains_eager(Course.like_user),
                               contains_eager(Course.like_user
