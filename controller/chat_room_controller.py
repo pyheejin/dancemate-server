@@ -373,6 +373,12 @@ def post_chat_room_detail_chat(chat_room_id, request, session, g):
                 'body': body
             }
             fcm.send_bulk_push(tokens, push_data)
+
+    # 채팅방 알림
+    room_notification_query = session.query(ChatRoomNotification
+                                            ).filter(ChatRoomNotification.chat_room_id == chat_room_id,
+                                                     ChatRoomNotification.user_id != g.id)
+    room_notification_query.update({'status': constant.STATUS_INACTIVE}, synchronize_session=False)
     return response
 
 
@@ -411,13 +417,16 @@ def post_chat_room_detail_notice(chat_room_id, session, g):
     room_notification = session.query(ChatRoomUser
                                 ).filter(ChatRoomUser.chat_room_id == chat_room_id,
                                          ChatRoomUser.user_id == g.id).first()
+
+    result = 0
     if room_notification is not None:
         if room_notification.is_notice == constant.STATUS_ACTIVE:
             room_notification.is_notice = constant.STATUS_INACTIVE
         else:
             room_notification.is_notice = constant.STATUS_ACTIVE
+            result = constant.STATUS_ACTIVE
 
     response.result_data = {
-        'is_notice': room_notification.is_notice
+        'is_notice': result
     }
     return response
