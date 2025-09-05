@@ -166,7 +166,7 @@ def post_course_detail_reserve(course_id, request, session, g):
         'body': ''
     }
     fcm = FCM()
-    fcm.send(g.fcm_token, push_data)
+    fcm.send_push(g.fcm_token, push_data)
     return response
 
 

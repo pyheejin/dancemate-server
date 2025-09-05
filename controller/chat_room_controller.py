@@ -320,10 +320,10 @@ def delete_chat_room_detail(chat_room_id, session, g):
 def post_chat_room_detail_chat(chat_room_id, request, session, g):
     response = DefaultModel()
 
-    chat_room = session.query(ChatRoom
-                        ).filter(ChatRoom.id == chat_room_id,
-                                 ChatRoom.status == constant.STATUS_ACTIVE).first()
-    if chat_room is None:
+    chat_room_query = session.query(ChatRoom
+                            ).filter(ChatRoom.id == chat_room_id,
+                                     ChatRoom.status == constant.STATUS_ACTIVE)
+    if chat_room_query.first() is None:
         raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
                             detail=ERROR_DATA_NOT_EXIST)
 
@@ -334,24 +334,45 @@ def post_chat_room_detail_chat(chat_room_id, request, session, g):
     chat.user_id = g.id
     chat.message = request.message
 
-    # 푸시 알림
-    room_notification = session.query(ChatRoomUser
-                                      ).filter(ChatRoomUser.chat_room_id == chat_room_id,
-                                               ChatRoomUser.user_id == g.id).first()
-    if room_notification is not None:
-        if room_notification.is_notice == constant.STATUS_ACTIVE:
-            push_data = {
-                'title': request.message,
-                'body': ''
-            }
-            fcm = FCM()
-            fcm.send(g.fcm_token, push_data)
+    fcm = FCM()
 
-    # 채팅방 알림
-    room_notification_query = session.query(ChatRoomNotification
-                                    ).filter(ChatRoomNotification.chat_room_id == chat_room_id,
-                                             ChatRoomNotification.user_id != g.id)
-    room_notification_query.update({'status': constant.STATUS_INACTIVE}, synchronize_session=False)
+    room_user_query = session.query(ChatRoomUser
+                            ).filter(ChatRoomUser.chat_room_id == chat_room_id)
+
+    if chat_room_query.first().type == constant.CHAT_ROOM_TYPE_DM:
+        friend = room_user_query.outerjoin(User, User.id == ChatRoomUser.user_id
+                                ).filter(ChatRoomUser.user_id != g.id
+                                ).options(contains_eager(ChatRoomUser.user),
+                                ).first()
+        if friend is not None:
+            if friend.is_notice == constant.STATUS_ACTIVE:
+                push_data = {
+                    'title': friend.user.nickname,
+                    'body': request.message
+                }
+                fcm.send_push(g.fcm_token, push_data)
+    else:  # 수업톡
+        chat_room = chat_room_query.outerjoin(Lesson, Lesson.id == ChatRoom.lesson_id
+                                    ).options(contains_eager(ChatRoom.lesson)).first()
+        if chat_room is not None:
+            title = chat_room.lesson.title
+            body = request.message
+
+            tokens = []
+            friends = room_user_query.outerjoin(User, User.id == ChatRoomUser.user_id
+                                    ).filter(ChatRoomUser.user_id != g.id
+                                    ).options(contains_eager(ChatRoomUser.user),
+                                    ).all()
+            for friend in friends:
+                if friend.is_notice == constant.STATUS_ACTIVE:
+                    token = friend.user.fcm_token
+                    tokens.append(token)
+
+            push_data = {
+                'title': title,
+                'body': body
+            }
+            fcm.send_bulk_push(tokens, push_data)
     return response
 
 

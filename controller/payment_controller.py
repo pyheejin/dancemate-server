@@ -51,7 +51,7 @@ def post_payment(session, request, g):
         'body': ''
     }
     fcm = FCM()
-    fcm.send(g.fcm_token, push_data)
+    fcm.send_push(g.fcm_token, push_data)
 
     response.result_data = {
         'payment': payment_detail_schema.dump(payment)
