@@ -11,7 +11,7 @@ def get_home(session, g):
     response = DefaultModel()
 
     _format = '%Y-%m-%d %H:%M:%S'
-    now = datetime.now().date()
+    now = datetime.now()
     today = datetime.strptime(now.strftime(_format), _format)
     tomorrow = datetime.strptime((now+timedelta(days=1)).strftime(_format), _format)
 
@@ -36,6 +36,13 @@ def get_home(session, g):
                                       contains_eager(Lesson.course).contains_eager(Course.user_course),
                                       contains_eager(Lesson.course).contains_eager(Course.like_user),
                             ).all()
+    result_today_lessons = []
+    for lesson in today_lessons:
+        for course in lesson.course:
+            course_date = f'{course.course_date.date()} {course.start_time}:00'
+            if now <= datetime.strptime(course_date, _format):
+                result_today_lessons.append(lesson_schema.dump(lesson))
+
     reserve_lessons = session.query(Course
                             ).outerjoin(Lesson,
                                         and_(Course.lesson_id == Lesson.id,
@@ -57,7 +64,7 @@ def get_home(session, g):
 
     response.result_data = {
         'recommend_users': user_list_schema.dump(recommend_users),
-        'today_lessons': lessons_schema.dump(today_lessons),
+        'today_lessons': result_today_lessons,
         'reserve_lessons': courses_schema.dump(reserve_lessons),
         'login_user_id': g.id,
     }

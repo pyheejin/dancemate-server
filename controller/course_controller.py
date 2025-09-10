@@ -265,9 +265,17 @@ def get_course_like(session, g):
                             ).contains_eager(UserCourseLike.user),
                     ).order_by(UserCourseLike.order.asc()).all()
 
+    result = []
+    _format = '%Y-%m-%d %H:%M:%S'
+    now = datetime.now()
+    for course in courses:
+        course_date = f'{course.course_date.date()} {course.start_time}:00'
+        if now <= datetime.strptime(course_date, _format):
+            result.append(course_schema.dump(course))
+
     response.result_data = {
         'result_count': len(courses),
-        'courses': courses_schema.dump(courses),
+        'courses': result,
     }
     return response
 
