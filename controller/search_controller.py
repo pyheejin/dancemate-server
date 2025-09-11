@@ -58,10 +58,10 @@ def get_search(session, keyword, g, page, pageSize):
                     ).outerjoin(User,
                                 and_(User.id == Lesson.user_id,
                                      User.status == constant.STATUS_ACTIVE)
-                    ).outerjoin(UserCourseLike,
-                                and_(UserCourseLike.course_id == Course.id,
-                                     UserCourseLike.user_id == g.id,
-                                     UserCourseLike.status == constant.STATUS_ACTIVE)
+                    ).outerjoin(UserLessonLike,
+                                and_(UserLessonLike.lesson_id == Lesson.id,
+                                     UserLessonLike.user_id == g.id,
+                                     UserLessonLike.status == constant.STATUS_ACTIVE)
                     ).filter(Course.status == constant.STATUS_ACTIVE,
                              Course.course_date >= today,
                              or_(Lesson.title.like(f'%{keyword}%'),
@@ -70,8 +70,7 @@ def get_search(session, keyword, g, page, pageSize):
                                       User.nickname.like(f'%{keyword}%'))),
                     ).options(contains_eager(Lesson.course),
                               contains_eager(Lesson.dancer),
-                              contains_eager(Lesson.course
-                            ).contains_eager(Course.like_user),
+                              contains_eager(Lesson.like_user),
                     ).all()
 
     lesson_ids = []

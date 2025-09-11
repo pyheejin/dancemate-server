@@ -30,7 +30,7 @@ user_list_schema = UserListSchema(many=True)
 user_schema = UserListSchema(many=False)
 
 
-class UserCourseLikeSchema(Schema):
+class UserLessonLikeSchema(Schema):
     id = fields.Int()
     status = fields.Int()
     order = fields.Int()
@@ -118,17 +118,11 @@ class CourseSchema(Schema):
     start_time = fields.String()
     end_time = fields.String()
     course_date = fields.DateTime('%Y-%m-%d')
-    is_like = fields.Method('get_is_like')
 
     lesson = fields.Nested(SimpleLessonListSchema(), many=False)
     user_course = fields.Nested(UserCourseReviewSchema(), many=True)
 
-    @classmethod
-    def get_is_like(cls, obj):
-        if len(obj.like_user) > 0:
-            return True
-        else:
-            return False
+
 
 
 courses_schema = CourseSchema(many=True)
@@ -149,10 +143,18 @@ class LessonListSchema(Schema):
     count = fields.Int()
     description = fields.String()
     last_course_date = fields.DateTime('%Y-%m-%d')
+    is_like = fields.Method('get_is_like')
 
     dancer = fields.Nested(UserListSchema(), many=False)
     course = fields.Nested(CourseSchema(), many=True)
     lesson_image = fields.Nested(LessonImageSchema(), many=True)
+
+    @classmethod
+    def get_is_like(cls, obj):
+        if len(obj.like_user) > 0:
+            return True
+        else:
+            return False
 
 
 lessons_schema = LessonListSchema(many=True)

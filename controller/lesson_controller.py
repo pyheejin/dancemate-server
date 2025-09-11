@@ -165,17 +165,16 @@ def get_lesson_detail(session, lesson_id, g):
                     ).outerjoin(Course,
                                 and_(Course.lesson_id == Lesson.id,
                                      Course.status == constant.STATUS_ACTIVE)
-                    ).outerjoin(UserCourseLike,
-                                and_(UserCourseLike.course_id == Course.id,
-                                     UserCourseLike.user_id == g.id,
-                                     UserCourseLike.status == constant.STATUS_ACTIVE)
+                    ).outerjoin(UserLessonLike,
+                                and_(UserLessonLike.lesson_id == Lesson.id,
+                                     UserLessonLike.user_id == g.id,
+                                     UserLessonLike.status == constant.STATUS_ACTIVE)
                     ).filter(Lesson.status >= constant.STATUS_INACTIVE,
                              Lesson.id == lesson_id,
                              *filter_list,
                     ).options(contains_eager(Lesson.course),
                               contains_eager(Lesson.lesson_image),
-                              contains_eager(Lesson.course
-                            ).contains_eager(Course.like_user),
+                              contains_eager(Lesson.like_user),
                     ).order_by(LessonImage.order.asc()
                     ).all()
 
@@ -201,6 +200,78 @@ def get_lesson_detail(session, lesson_id, g):
     response.result_data = {
         'lesson': lesson_schema.dump(lesson[0]),
         'ticket_count': ticket_count,
+    }
+    return response
+
+
+def post_lesson_detail_like(session, lesson_id, g):
+    response = DefaultModel()
+
+    lesson = session.query(Lesson
+                    ).filter(Lesson.id == lesson_id,
+                             Lesson.status == constant.STATUS_ACTIVE).first()
+    if lesson is None:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DATA_NOT_EXIST)
+
+    like_lesson_query = session.query(UserLessonLike
+                                ).filter(UserLessonLike.user_id == g.id,
+                                         UserLessonLike.status == constant.STATUS_ACTIVE)
+    # 처음 찜한 경우
+    exists = like_lesson_query.filter(UserLessonLike.lesson_id == lesson_id).first()
+    if exists is None:
+        # 순서
+        like_lesson_list = like_lesson_query.all()
+
+        user_lesson_like = UserLessonLike()
+        session.add(user_lesson_like)
+
+        user_lesson_like.status = constant.STATUS_ACTIVE
+        user_lesson_like.order = len(like_lesson_list) + 1
+        user_lesson_like.user_id = g.id
+        user_lesson_like.lesson_id = lesson_id
+
+        status = constant.STATUS_ACTIVE
+    else:  # 이미 찜한 경우
+        if exists.status == constant.STATUS_ACTIVE:
+            exists.status = constant.STATUS_INACTIVE
+        else:
+            exists.status = constant.STATUS_ACTIVE
+
+        status = exists.status
+
+        # 순서 조정
+        order_query = like_lesson_query.filter(UserLessonLike.order > exists.order
+                                    ).order_by(UserLessonLike.order.asc()).all()
+        for like_lesson in order_query:
+            like_lesson.order -= 1
+
+    response.result_data = {
+        'status': status
+    }
+    return response
+
+
+def get_lesson_like(session, g):
+    response = DefaultModel()
+
+    _format = '%Y-%m-%d %H:%M:%S'
+    now = datetime.now()
+    lessons = session.query(Lesson
+                    ).outerjoin(UserLessonLike,
+                                and_(UserLessonLike.lesson_id == Lesson.id,
+                                     UserLessonLike.status == constant.STATUS_ACTIVE),
+                    ).outerjoin(User, User.id == UserLessonLike.user_id,
+                    ).filter(Lesson.status == constant.STATUS_ACTIVE,
+                             UserLessonLike.user_id == g.id,
+                             Lesson.last_course_date >= now,
+                    ).options(contains_eager(Lesson.dancer),
+                              contains_eager(Lesson.like_user),
+                    ).order_by(UserLessonLike.order.asc()).all()
+
+    response.result_data = {
+        'result_count': len(lessons),
+        'lessons': lessons_schema.dump(lessons),
     }
     return response
 

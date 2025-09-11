@@ -26,15 +26,15 @@ def get_home(session, g):
                             ).outerjoin(UserCourse,
                                         and_(UserCourse.course_id == Course.id,
                                              UserCourse.status == constant.STATUS_ACTIVE)
-                            ).outerjoin(UserCourseLike,
-                                        and_(UserCourseLike.course_id == Course.id,
-                                             UserCourseLike.user_id == g.id,
-                                             UserCourseLike.status == constant.STATUS_ACTIVE)
+                            ).outerjoin(UserLessonLike,
+                                        and_(UserLessonLike.lesson_id == Lesson.id,
+                                             UserLessonLike.user_id == g.id,
+                                             UserLessonLike.status == constant.STATUS_ACTIVE)
                             ).filter(Lesson.status == constant.STATUS_ACTIVE,
                                      Course.course_date.between(today, tomorrow)
                             ).options(contains_eager(Lesson.course),
                                       contains_eager(Lesson.course).contains_eager(Course.user_course),
-                                      contains_eager(Lesson.course).contains_eager(Course.like_user),
+                                      contains_eager(Lesson.like_user),
                             ).all()
     result_today_lessons = []
     for lesson in today_lessons:
@@ -50,16 +50,16 @@ def get_home(session, g):
                             ).outerjoin(UserCourse,
                                         and_(UserCourse.course_id == Course.id,
                                              UserCourse.status == constant.STATUS_ACTIVE)
-                            ).outerjoin(UserCourseLike,
-                                        and_(UserCourseLike.course_id == Course.id,
-                                             UserCourseLike.user_id == g.id,
-                                             UserCourseLike.status == constant.STATUS_ACTIVE)
+                            ).outerjoin(UserLessonLike,
+                                        and_(UserLessonLike.lesson_id == Lesson.id,
+                                             UserLessonLike.user_id == g.id,
+                                             UserLessonLike.status == constant.STATUS_ACTIVE)
                             ).filter(Course.status == constant.STATUS_ACTIVE,
                                      Course.course_date >= today,
                                      UserCourse.user_id == g.id,
                             ).options(contains_eager(Course.lesson),
                                       contains_eager(Course.user_course),
-                                      contains_eager(Course.like_user),
+                                      contains_eager(Course.lesson).contains_eager(Lesson.like_user),
                             ).all()
 
     response.result_data = {

@@ -38,7 +38,7 @@ class User(Base):
     reserve_course = relationship('UserCourse', back_populates='user')
     mate_ticket = relationship('UserTicket', back_populates='mate')
     dancer_ticket = relationship('Ticket', back_populates='dancer')
-    user_course_like = relationship('UserCourseLike', back_populates='user')
+    user_lesson_like = relationship('UserLessonLike', back_populates='user')
     payment = relationship('Payment', back_populates='user')
     review = relationship('Review', back_populates='user')
     notification = relationship('Notification', back_populates='user')
@@ -69,6 +69,7 @@ class Lesson(Base):
     lesson_image = relationship('LessonImage', back_populates='lesson')
     review = relationship('Review', back_populates='lesson')
     chat_room = relationship('ChatRoom', back_populates='lesson')
+    like_user = relationship('UserLessonLike', back_populates='lesson')
 
 
 class Course(Base):
@@ -88,7 +89,6 @@ class Course(Base):
 
     lesson = relationship('Lesson', back_populates='course')
     user_course = relationship('UserCourse', back_populates='course')
-    like_user = relationship('UserCourseLike', back_populates='course')
 
 
 class LessonImage(Base):
@@ -221,19 +221,19 @@ class UserCourse(Base):
     review = relationship('Review', back_populates='user_course')
 
 
-class UserCourseLike(Base):
-    __tablename__ = 'user_course_like'
+class UserLessonLike(Base):
+    __tablename__ = 'user_lesson_like'
 
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Integer, default=1, comment='1:활성화, 0:비활성화, -1:삭제')
     order = Column(Integer, default=1, comment='순서')
     user_id = Column(Integer, ForeignKey('user.id'), comment='')
-    course_id = Column(Integer, ForeignKey('course.id'), comment='')
+    lesson_id = Column(Integer, ForeignKey('lesson.id'), comment='')
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
-    user = relationship('User', back_populates='user_course_like')
-    course = relationship('Course', back_populates='like_user')
+    user = relationship('User', back_populates='user_lesson_like')
+    lesson = relationship('Lesson', back_populates='like_user')
 
 
 class SearchKeyword(Base):
