@@ -42,8 +42,16 @@ class SimpleLessonListSchema(Schema):
     id = fields.Int()
     title = fields.String()
     image_url = fields.String()
+    is_like = fields.Method('get_is_like')
 
     dancer = fields.Nested(UserListSchema(), many=False)
+
+    @classmethod
+    def get_is_like(cls, obj):
+        if len(obj.like_user) > 0:
+            return True
+        else:
+            return False
 
 
 simple_lesson_schema = SimpleLessonListSchema(many=False)
@@ -121,8 +129,6 @@ class CourseSchema(Schema):
 
     lesson = fields.Nested(SimpleLessonListSchema(), many=False)
     user_course = fields.Nested(UserCourseReviewSchema(), many=True)
-
-
 
 
 courses_schema = CourseSchema(many=True)

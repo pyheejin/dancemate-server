@@ -8,7 +8,7 @@ from database.schema import *
 from database.base_model import DefaultModel
 
 
-def get_lesson(session, date):
+def get_lesson(session, date, g):
     response = DefaultModel()
 
     _format = '%Y-%m-%d %H:%M:%S'
@@ -24,10 +24,15 @@ def get_lesson(session, date):
                     ).outerjoin(Lesson,
                                 and_(Course.lesson_id == Lesson.id,
                                      Lesson.status >= constant.STATUS_INACTIVE)
+                    ).outerjoin(UserLessonLike,
+                                and_(UserLessonLike.lesson_id == Lesson.id,
+                                     UserLessonLike.user_id == g.id,
+                                     UserLessonLike.status == constant.STATUS_ACTIVE)
                     ).filter(Course.status >= constant.STATUS_INACTIVE,
                              and_(Course.course_date >= before_date_filter,
                                   Course.course_date <= after_date_filter),
                     ).options(contains_eager(Course.lesson),
+                              contains_eager(Course.lesson).contains_eager(Lesson.like_user),
                     ).all()
 
     response.result_data = {
@@ -261,13 +266,13 @@ def get_lesson_like(session, g):
                     ).outerjoin(UserLessonLike,
                                 and_(UserLessonLike.lesson_id == Lesson.id,
                                      UserLessonLike.status == constant.STATUS_ACTIVE),
-                    ).outerjoin(User, User.id == UserLessonLike.user_id,
+                    ).outerjoin(User, User.id == Lesson.user_id,
                     ).filter(Lesson.status == constant.STATUS_ACTIVE,
                              UserLessonLike.user_id == g.id,
                              Lesson.last_course_date >= now,
                     ).options(contains_eager(Lesson.dancer),
                               contains_eager(Lesson.like_user),
-                    ).order_by(UserLessonLike.order.asc()).all()
+                    ).order_by(UserLessonLike.order.desc()).all()
 
     response.result_data = {
         'result_count': len(lessons),

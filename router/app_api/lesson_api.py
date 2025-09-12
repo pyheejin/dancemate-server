@@ -70,11 +70,13 @@ def get_lesson_like(session: Session = Depends(db.session),
 
 @router.get('', tags=['lesson'], summary='수업', dependencies=[Depends(get_current_user)])
 def get_lesson(session: Session = Depends(db.session),
-               date: Optional[str] = None):
+               date: Optional[str] = None,
+               g: User = Depends(get_current_user)):
     result_msg = '수업'
     try:
         response = lesson_controller.get_lesson(session=session,
-                                                date=date)
+                                                date=date,
+                                                g=g)
     except HTTPException as e:
         print(f'error: {e.detail}')
         session.rollback()

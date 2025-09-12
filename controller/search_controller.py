@@ -25,6 +25,10 @@ def get_search_pre(session, g):
                                     ).order_by(SearchKeyword.created_at.desc()).all()
 
     recommend_courses = session.query(Lesson
+                            ).outerjoin(UserLessonLike,
+                                and_(UserLessonLike.lesson_id == Lesson.id,
+                                     UserLessonLike.user_id == g.id,
+                                     UserLessonLike.status == constant.STATUS_ACTIVE)
                             ).outerjoin(Course,
                                         and_(Course.lesson_id == Lesson.id,
                                              # Course.course_date >= today,
@@ -35,6 +39,7 @@ def get_search_pre(session, g):
                             ).filter(Lesson.status == constant.STATUS_ACTIVE,
                                      Lesson.last_course_date >= today,
                             ).options(contains_eager(Lesson.course),
+                                      contains_eager(Lesson.like_user),
                             ).all()[:3]
 
     response.result_data = {
