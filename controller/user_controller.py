@@ -366,3 +366,25 @@ def get_user_notification(session, g, page, pageSize):
         'notices': result,
     }
     return response
+
+
+def put_user_change_password(request, session):
+    response = DefaultModel()
+
+    email = request.email
+    password = request.password
+    password_again = request.password_again
+
+    if password != password_again:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_UNAUTHORIZED][0],
+                            detail='비밀번호가 일치하지 않습니다.')
+
+    user = session.query(User).filter(User.status == constant.STATUS_ACTIVE,
+                                      User.email == email).first()
+    if user is None:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DATA_NOT_EXIST)
+
+    jwt = JWT()
+    user.password = jwt.get_password_hash(password)
+    return response

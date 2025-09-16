@@ -48,8 +48,11 @@ class SimpleLessonListSchema(Schema):
 
     @classmethod
     def get_is_like(cls, obj):
-        if len(obj.like_user) > 0:
-            return True
+        if obj is not None:
+            if len(obj.like_user) > 0:
+                return True
+            else:
+                return False
         else:
             return False
 
