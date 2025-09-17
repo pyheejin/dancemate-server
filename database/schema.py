@@ -289,6 +289,43 @@ class UserProfileSchema(Schema):
 user_profile_schema = UserProfileSchema(many=False)
 
 
+class UserListSchema(Schema):
+    id = fields.Int()
+    type = fields.Int()
+    email = fields.String()
+    nickname = fields.String()
+    image_url = fields.String()
+    last_login_date = fields.DateTime('%Y-%m-%d %H:%M:%S')
+
+    method = fields.Method('get_method')
+    type = fields.Method('get_type')
+
+    @classmethod
+    def get_method(cls, obj):
+        # 1:일반, 2:구글, 3:카카오, 4:애플
+        if obj.method == 2:
+            return '구글 로그인'
+        elif obj.method == 3:
+            return '카카오 로그인'
+        elif obj.method == 4:
+            return '애플 로그인'
+        else:
+            return '이메일 로그인'
+
+    @classmethod
+    def get_type(cls, obj):
+        # 1:mate, 50:dancer, 99:admin
+        if obj.type == 1:
+            return '메이트'
+        elif obj.type == 50:
+            return '댄서'
+        else:
+            return '관리자'
+
+
+users_schema = UserListSchema(many=True)
+
+
 class UserDetailSchema(Schema):
     id = fields.Int()
     type = fields.Int()

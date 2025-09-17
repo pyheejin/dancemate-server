@@ -59,8 +59,39 @@ class PostUserLogoutModel(BaseModel):
 
 
 class PutUserChangePasswordModel(BaseModel):
+    email: str
     password: str
-    password_again: Optional[str]
+    password_again: str
+
+
+@router.get('', tags=['user'], summary='유저 목록')
+def get_users(email: str,
+              session: Session = Depends(db.session)):
+    result_msg = '유저 목록'
+    try:
+        response = user_controller.get_users(email=email,
+                                             session=session)
+    except HTTPException as e:
+        print(f'error: {e.detail}')
+        session.rollback()
+        response = None
+        response = error_response(response, e.detail, e.status_code, result_msg)
+    except Exception as e:
+        print(e)
+        session.rollback()
+
+        response = DefaultModel()
+        response.result_msg = f'{result_msg} 실패'
+        response.result_code = 210
+    else:
+        session.commit()
+        if response is None:
+            response = DefaultModel()
+        if response.result_msg is not None:
+            response.result_msg = f'{result_msg} 성공'
+    finally:
+        session.close()
+    return response
 
 
 @router.post('/join', tags=['user'], summary='회원가입')
@@ -251,7 +282,7 @@ def get_user_notification(session: Session = Depends(db.session),
     return response
 
 
-@router.put('/change-password', tags=['user'], summary='비밀번호 변경', dependencies=[Depends(get_current_user)])
+@router.put('/change-password', tags=['user'], summary='비밀번호 변경')
 def put_user_change_password(request: PutUserChangePasswordModel,
                              session: Session = Depends(db.session)):
     result_msg = '비밀번호 변경'

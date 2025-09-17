@@ -368,10 +368,27 @@ def get_user_notification(session, g, page, pageSize):
     return response
 
 
+def get_users(email, session):
+    response = DefaultModel()
+
+    users = session.query(User).filter(User.status == constant.STATUS_ACTIVE,
+                                       User.email == email).all()
+    if len(users) == 0:
+        raise HTTPException(status_code=ERROR_DIC[ERROR_DATA_NOT_EXIST][0],
+                            detail=ERROR_DATA_NOT_EXIST)
+
+    response.result_data = {
+        'result_count': len(users),
+        'users': users_schema.dump(users),
+    }
+    return response
+
+
 def put_user_change_password(request, session):
     response = DefaultModel()
 
     email = request.email
+    print(email)
     password = request.password
     password_again = request.password_again
 
