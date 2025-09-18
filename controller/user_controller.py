@@ -388,7 +388,6 @@ def put_user_change_password(request, session):
     response = DefaultModel()
 
     email = request.email
-    print(email)
     password = request.password
     password_again = request.password_again
 
