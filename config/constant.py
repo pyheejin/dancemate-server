@@ -1,3 +1,6 @@
+import re
+from typing import Tuple, Optional
+
 IS_DEPLOY = True
 IS_REAL_SERVER = False
 
@@ -54,3 +57,21 @@ ERROR_DIC = {
     ERROR_TOKEN_EXPIRED: (404, '토큰이 만료되었습니다.'),
     ERROR_PROCESSING: (500, '처리 중 오류가 발생하였습니다.'),
 }
+
+
+class RegExpChecker(object):
+    password_form = re.compile("^(?=.{8,16}$)(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@.#$%&'*+/=?^_`{|}~-]).*$")
+    email_form = re.compile(
+        "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")
+
+    @classmethod
+    def check_password_form(cls, target: str) -> bool:
+        if target is None or not isinstance(target, str) or len(target) == 0:
+            return False
+        return cls.password_form.match(target) is not None
+
+    @classmethod
+    def check_email_form(cls, target: str) -> bool:
+        if target is None or not isinstance(target, str) or len(target) == 0:
+            return False
+        return cls.email_form.match(target) is not None

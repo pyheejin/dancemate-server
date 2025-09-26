@@ -159,6 +159,18 @@ def post_user_join(session, request):
         raise HTTPException(status_code=ERROR_DIC[ERROR_EMAIL_EXISTS][0],
                             detail=ERROR_EMAIL_EXISTS)
 
+    if not constant.RegExpChecker.check_email_form(request.email):
+        raise HTTPException(status_code=210,
+                            detail='이메일 형식이 아닙니다.')
+
+    if not 8 <= len(request.password) <= 32:
+        raise HTTPException(status_code=210,
+                            detail='비밀번호는 8자 이상 32자 이하로 입력해주세요')
+
+    if not constant.RegExpChecker.check_password_form(request.password):
+        raise HTTPException(status_code=210,
+                            detail='비밀번호는 영문+특수문자+숫자 포함하여 8자 이상이어야 합니다.')
+
     user = User()
     user.type = request.type
     user.method = request.method
